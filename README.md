@@ -35,9 +35,9 @@ The service exposes the following RESTful endpoints for interaction.
 
 | Method   | Path                  | Description                                                              |
 | :------- | :-------------------- | :----------------------------------------------------------------------- |
-| `POST`   | `/api/v1/posts`       | Facilitates the creation of a new post entity.                           |
-| `GET`    | `/api/v1/posts/:id`   | Retrieves a single post entity, identified by its unique ID.             |
-| `GET`    | `/api/v1/posts`       | Returns a paginated list of all post entities.                           |
-| `PUT`    | `/api/v1/posts/:id`   | Updates the content and attributes of a pre-existing post entity.        |
-| `DELETE` | `/api/v1/posts/:id`   | Permanently removes a post entity from the system.                       |
+| `POST`   | `/api/posts`       | Facilitates the creation of a new post entity.                           |
+| `GET`    | `/api/posts/:id`   | Retrieves a single post entity, identified by its unique ID.             |
+| `GET`    | `/api/posts`       | Returns a paginated list of all post entities.                           |
+| `PUT`    | `/api/posts/:id`   | Updates the content and attributes of a pre-existing post entity.        |
+| `DELETE` | `/api/posts/:id`   | Permanently removes a post entity from the system.                       |
 | `GET`    | `/health-check`       | Provides an endpoint to verify the operational status of the service.    |
