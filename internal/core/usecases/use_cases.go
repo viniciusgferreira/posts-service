@@ -1,3 +1,3 @@
-package use_cases
+package usecases
 
 //placeholder file
