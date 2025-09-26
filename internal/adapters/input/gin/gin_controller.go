@@ -22,10 +22,8 @@ func NewController(logger *logrus.Logger) *Controller {
 }
 
 func (c *Controller) SetupRoutes(r *gin.Engine) {
-	// Health check endpoint
 	r.GET("/health", c.HealthCheck)
 
-	// API v1 routes
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/posts", c.GetPosts)
@@ -47,7 +45,6 @@ func (c *Controller) HealthCheck(ctx *gin.Context) {
 func (c *Controller) GetPosts(ctx *gin.Context) {
 	c.logger.Info("Get posts requested")
 
-	// Parse query parameters
 	page := 1
 	limit := 10
 	// TODO: Use these query parameters in the actual implementation
@@ -75,7 +72,6 @@ func (c *Controller) GetPosts(ctx *gin.Context) {
 		},
 	}
 
-	// Generate collection links
 	collectionLinks := hateoasBuilder.CollectionLinks("posts", page, limit, 1)
 
 	response := dto.GetPostsResponse{
@@ -115,7 +111,6 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 	slug := c.generateSlug(req.Title)
 	baseURL := c.getBaseURL(ctx)
 
-	// Create HATEOAS builder and generate links
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
 	links := hateoasBuilder.PostLinks(postID, slug, req.AuthorID)
 
@@ -203,15 +198,10 @@ func (c *Controller) DeletePost(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-// generateSlug creates a URL-friendly slug from a title
 func (c *Controller) generateSlug(title string) string {
-	// Convert to lowercase
 	slug := strings.ToLower(title)
-
-	// Replace spaces with hyphens
 	slug = strings.ReplaceAll(slug, " ", "-")
 
-	// Remove special characters except hyphens
 	slug = strings.ReplaceAll(slug, "ç", "c")
 	slug = strings.ReplaceAll(slug, "ã", "a")
 	slug = strings.ReplaceAll(slug, "á", "a")
@@ -225,7 +215,6 @@ func (c *Controller) generateSlug(title string) string {
 	slug = strings.ReplaceAll(slug, "ú", "u")
 	slug = strings.ReplaceAll(slug, "ü", "u")
 
-	// Remove any remaining special characters except hyphens and alphanumeric
 	var result strings.Builder
 	for _, char := range slug {
 		if (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '-' {
@@ -233,19 +222,15 @@ func (c *Controller) generateSlug(title string) string {
 		}
 	}
 
-	// Remove multiple consecutive hyphens
 	slug = result.String()
 	for strings.Contains(slug, "--") {
 		slug = strings.ReplaceAll(slug, "--", "-")
 	}
 
-	// Remove leading/trailing hyphens
 	slug = strings.Trim(slug, "-")
-
 	return slug
 }
 
-// getBaseURL extracts the base URL from the request context
 func (c *Controller) getBaseURL(ctx *gin.Context) string {
 	scheme := "http"
 	if ctx.Request.TLS != nil {
