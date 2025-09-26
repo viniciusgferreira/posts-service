@@ -184,13 +184,23 @@ func (c *Controller) UpdatePost(ctx *gin.Context) {
 }
 
 func (c *Controller) DeletePost(ctx *gin.Context) {
-	id := ctx.Param("id")
-	c.logger.WithField("post_id", id).Info("Delete post requested")
-	// TODO: Implement delete post logic
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Delete post endpoint - to be implemented",
-		"id":      id,
-	})
+	c.logger.Info("Delete post requested")
+
+	var req dto.GetPostRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		c.logger.WithError(err).Error("Failed to bind URI parameters")
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Error:   "validation failed",
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
+		return
+	}
+
+	c.logger.WithField("post_id", req.ID).Info("Delete post requested")
+
+	// TODO: Implement delete post logic using use cases
+	ctx.Status(http.StatusNoContent)
 }
 
 // generateSlug creates a URL-friendly slug from a title
