@@ -135,13 +135,42 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 }
 
 func (c *Controller) GetPost(ctx *gin.Context) {
-	id := ctx.Param("id")
-	c.logger.WithField("post_id", id).Info("Get post requested")
-	// TODO: Implement get post logic
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Get post endpoint - to be implemented",
-		"id":      id,
-	})
+	c.logger.Info("Get post requested")
+
+	var req dto.GetPostRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		c.logger.WithError(err).Error("Failed to bind URI parameters")
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Error:   "validation failed",
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
+		return
+	}
+
+	c.logger.WithField("post_id", req.ID).Info("Get post requested")
+
+	// TODO: Implement get post logic using use cases
+	// Placeholder response with proper structure and HATEOAS links
+	baseURL := c.getBaseURL(ctx)
+	hateoasBuilder := hateoas.NewBuilder(baseURL)
+
+	// Generate HATEOAS links for the post
+	links := hateoasBuilder.PostLinks(req.ID, "placeholder-slug", "placeholder-author-id")
+
+	response := dto.GetPostResponse{
+		ID:              req.ID,
+		Title:           "Post Title (Placeholder)",
+		Slug:            "placeholder-slug",
+		AuthorID:        "placeholder-author-id",
+		CoverImageURL:   "",
+		MarkdownContent: "# Placeholder Post\n\nThis is a placeholder response. The actual post data will be fetched from the database when the use case is implemented.",
+		CreatedAt:       time.Now().Add(-24 * time.Hour), // Created 1 day ago
+		UpdatedAt:       time.Now(),
+		Links:           links,
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
 
 func (c *Controller) UpdatePost(ctx *gin.Context) {
