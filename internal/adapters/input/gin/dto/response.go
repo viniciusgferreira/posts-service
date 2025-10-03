@@ -7,7 +7,7 @@ import (
 )
 
 // CreatePostResponse represents the response payload for creating a new post
-type CreatePostResponse struct {
+type PostResponse struct {
 	ID              string        `json:"id" example:"123456789"`
 	Title           string        `json:"title" example:"O Guia Completo para Arquitetura Hexagonal"`
 	Slug            string        `json:"slug" example:"o-guia-completo-para-arquitetura-hexagonal"`
@@ -21,9 +21,9 @@ type CreatePostResponse struct {
 
 // GetPostsResponse represents the response for getting multiple posts
 type GetPostsResponse struct {
-	Posts      []CreatePostResponse `json:"posts"`
-	Pagination PaginationInfo       `json:"pagination"`
-	Links      hateoas.Links        `json:"_links"`
+	Posts      []PostResponse `json:"posts"`
+	Pagination PaginationInfo `json:"pagination"`
+	Links      hateoas.Links  `json:"_links"`
 }
 
 // PaginationInfo represents pagination metadata

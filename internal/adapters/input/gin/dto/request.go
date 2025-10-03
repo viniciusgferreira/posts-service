@@ -7,3 +7,8 @@ type CreatePostRequest struct {
 	CoverImageURL   string `json:"cover_image_url" binding:"omitempty,url" example:"https://cdn.seu-blog.com/imagens/post-arquitetura-hexagonal-capa.png"`
 	MarkdownContent string `json:"markdown_content" binding:"required,min=1" example:"# Guia para Arquitetura Hexagonal..."`
 }
+
+// GetPostRequest represents the request parameters for getting a post by ID
+type GetPostRequest struct {
+	ID string `uri:"id" binding:"required,min=1" example:"123456789"`
+}
