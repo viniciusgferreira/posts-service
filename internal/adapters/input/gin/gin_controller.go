@@ -61,7 +61,7 @@ func (c *Controller) GetPosts(ctx *gin.Context) {
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
 
 	// Mock data
-	posts := []dto.CreatePostResponse{
+	posts := []dto.PostResponse{
 		{
 			ID:              "123456789",
 			Title:           "O Guia Completo para Arquitetura Hexagonal",
@@ -119,7 +119,7 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
 	links := hateoasBuilder.PostLinks(postID, slug, req.AuthorID)
 
-	response := dto.CreatePostResponse{
+	response := dto.PostResponse{
 		ID:              postID,
 		Title:           req.Title,
 		Slug:            slug,
@@ -158,7 +158,7 @@ func (c *Controller) GetPost(ctx *gin.Context) {
 	// Generate HATEOAS links for the post
 	links := hateoasBuilder.PostLinks(req.ID, "placeholder-slug", "placeholder-author-id")
 
-	response := dto.GetPostResponse{
+	response := dto.PostResponse{
 		ID:              req.ID,
 		Title:           "Post Title (Placeholder)",
 		Slug:            "placeholder-slug",
