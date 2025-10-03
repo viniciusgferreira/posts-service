@@ -25,7 +25,7 @@ type Builder struct {
 // NewBuilder creates a new HATEOAS builder
 func NewBuilder(baseURL string) *Builder {
 	return &Builder{
-		baseURL: strings.TrimSuffix(baseURL, "/"),
+		baseURL: strings.TrimRight(baseURL, "/"),
 	}
 }
 
