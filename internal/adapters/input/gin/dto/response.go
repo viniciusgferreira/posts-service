@@ -7,20 +7,7 @@ import (
 )
 
 // CreatePostResponse represents the response payload for creating a new post
-type CreatePostResponse struct {
-	ID              string        `json:"id" example:"123456789"`
-	Title           string        `json:"title" example:"O Guia Completo para Arquitetura Hexagonal"`
-	Slug            string        `json:"slug" example:"o-guia-completo-para-arquitetura-hexagonal"`
-	AuthorID        string        `json:"author_id" example:"987654321"`
-	CoverImageURL   string        `json:"cover_image_url" example:"https://cdn.seu-blog.com/imagens/post-arquitetura-hexagonal-capa.png"`
-	MarkdownContent string        `json:"markdown_content" example:"# Guia para Arquitetura Hexagonal..."`
-	CreatedAt       time.Time     `json:"created_at" example:"2025-09-03T10:00:00Z"`
-	UpdatedAt       time.Time     `json:"updated_at" example:"2025-09-03T10:00:00Z"`
-	Links           hateoas.Links `json:"_links"`
-}
-
-// GetPostResponse represents the response payload for getting a post by ID
-type GetPostResponse struct {
+type PostResponse struct {
 	ID              string        `json:"id" example:"123456789"`
 	Title           string        `json:"title" example:"O Guia Completo para Arquitetura Hexagonal"`
 	Slug            string        `json:"slug" example:"o-guia-completo-para-arquitetura-hexagonal"`
@@ -34,9 +21,9 @@ type GetPostResponse struct {
 
 // GetPostsResponse represents the response for getting multiple posts
 type GetPostsResponse struct {
-	Posts      []CreatePostResponse `json:"posts"`
-	Pagination PaginationInfo       `json:"pagination"`
-	Links      hateoas.Links        `json:"_links"`
+	Posts      []PostResponse `json:"posts"`
+	Pagination PaginationInfo `json:"pagination"`
+	Links      hateoas.Links  `json:"_links"`
 }
 
 // PaginationInfo represents pagination metadata
