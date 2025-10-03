@@ -222,7 +222,7 @@ func TestBuilder_NewBuilder(t *testing.T) {
 		{
 			name:     "URL with multiple trailing slashes",
 			baseURL:  "https://api.example.com/v1///",
-			expected: "https://api.example.com/v1//",
+			expected: "https://api.example.com/v1",
 		},
 		{
 			name:     "Empty URL",
