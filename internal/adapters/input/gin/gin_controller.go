@@ -2,6 +2,7 @@ package gin
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -106,26 +107,27 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: Use cases layer will be implemented
+	// Use use case to create post
+	post, err := c.postUseCases.CreatePost(req.Title, req.MarkdownContent, req.AuthorID, req.CoverImageURL)
+	if err != nil {
+		c.handleError(ctx, err)
+		return
+	}
 
-	// Mock response for now
-	now := time.Now()
-	postID := "123456789"
-	slug := "mock-slug"
+	// Generate response with HATEOAS links
 	baseURL := c.getBaseURL(ctx)
-
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
-	links := hateoasBuilder.PostLinks(postID, slug, req.AuthorID)
+	links := hateoasBuilder.PostLinks(post.ID, post.Slug, post.Author.ID)
 
 	response := dto.PostResponse{
-		ID:              postID,
-		Title:           req.Title,
-		Slug:            slug,
-		AuthorID:        req.AuthorID,
-		CoverImageURL:   req.CoverImageURL,
-		MarkdownContent: req.MarkdownContent,
-		CreatedAt:       now,
-		UpdatedAt:       now,
+		ID:              post.ID,
+		Title:           post.Title,
+		Slug:            post.Slug,
+		AuthorID:        post.Author.ID,
+		CoverImageURL:   post.CoverImageURL,
+		MarkdownContent: post.MarkdownContent,
+		CreatedAt:       post.CreatedAt,
+		UpdatedAt:       post.UpdatedAt,
 		Links:           links,
 	}
 
@@ -201,7 +203,7 @@ func (c *Controller) UpdatePost(ctx *gin.Context) {
 	// TODO: Implement update post logic using use cases
 	// For now, return a mock response with HATEOAS links
 	now := time.Now()
-	slug := c.generateSlug(req.Title)
+	slug := "mock-slug"
 	baseURL := c.getBaseURL(ctx)
 
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
@@ -256,16 +258,31 @@ func (c *Controller) getBaseURL(ctx *gin.Context) string {
 	return scheme + "://" + host + "/api/v1"
 }
 
-// TODO: Implement proper error handling for domain errors
-// This will be used when use cases layer is implemented
+// handleError maps domain errors to appropriate HTTP status codes
 func (c *Controller) handleError(ctx *gin.Context, err error) {
 	c.logger.WithError(err).Error("Use case error")
 
-	// TODO: Map domain errors to appropriate HTTP status codes
-	// For now, return generic error
-	ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-		Error:   "internal error",
-		Message: err.Error(),
-		Code:    http.StatusInternalServerError,
-	})
+	// Map specific errors to appropriate HTTP status codes
+	errorMsg := err.Error()
+
+	switch {
+	case strings.Contains(errorMsg, "not found"):
+		ctx.JSON(http.StatusNotFound, dto.ErrorResponse{
+			Error:   "not found",
+			Message: errorMsg,
+			Code:    http.StatusNotFound,
+		})
+	case strings.Contains(errorMsg, "validation failed") || strings.Contains(errorMsg, "cannot be empty"):
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Error:   "validation failed",
+			Message: errorMsg,
+			Code:    http.StatusBadRequest,
+		})
+	default:
+		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Error:   "internal error",
+			Message: "An unexpected error occurred",
+			Code:    http.StatusInternalServerError,
+		})
+	}
 }
