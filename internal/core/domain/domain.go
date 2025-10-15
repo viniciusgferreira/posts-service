@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// Author represents an author in the domain
 type Author struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
@@ -33,7 +32,6 @@ func NewAuthor(id, name, email string) (*Author, error) {
 	}, nil
 }
 
-// Post represents a post in the domain
 type Post struct {
 	ID              string    `json:"id"`
 	Title           string    `json:"title"`
