@@ -11,6 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	ginadapter "github.com/viniciusgferreira/posts-service/internal/adapters/input/gin"
+	mockadapter "github.com/viniciusgferreira/posts-service/internal/adapters/output/mock"
+	"github.com/viniciusgferreira/posts-service/internal/core/domain"
+	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
 const (
@@ -43,9 +46,22 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(corsMiddleware())
 
-	// TODO: Initialize use cases layer when implemented
-	// For now, pass nil to maintain compilation
-	controller := ginadapter.NewController(logger, nil)
+	// Initialize repositories (mock implementations)
+	postRepo := mockadapter.NewMockPostRepository()
+	authorRepo := mockadapter.NewMockAuthorRepository()
+	notifier := mockadapter.NewMockNotificationService()
+
+	// Create some mock authors for testing
+	mockAuthor1, _ := domain.NewAuthor("author_1", "John Silva", "john@example.com")
+	mockAuthor2, _ := domain.NewAuthor("author_2", "Mary Santos", "mary@example.com")
+	authorRepo.Save(mockAuthor1)
+	authorRepo.Save(mockAuthor2)
+
+	// Initialize use cases
+	postUseCases := usecases.NewPostUseCases(postRepo, authorRepo, notifier)
+
+	// Initialize controller with dependencies
+	controller := ginadapter.NewController(logger, postUseCases)
 	controller.SetupRoutes(router)
 
 	// Create HTTP server
