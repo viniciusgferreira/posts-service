@@ -172,13 +172,54 @@ func (c *Controller) GetPost(ctx *gin.Context) {
 }
 
 func (c *Controller) UpdatePost(ctx *gin.Context) {
-	id := ctx.Param("id")
-	c.logger.WithField("post_id", id).Info("Update post requested")
-	// TODO: Implement update post logic
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Update post endpoint - to be implemented",
-		"id":      id,
-	})
+	c.logger.Info("Update post requested")
+
+	var uriReq dto.GetPostRequest
+	if err := ctx.ShouldBindUri(&uriReq); err != nil {
+		c.logger.WithError(err).Error("Failed to bind URI parameters")
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Error:   "validation failed",
+			Message: "Invalid post ID parameter",
+			Code:    http.StatusBadRequest,
+		})
+		return
+	}
+
+	var req dto.UpdatePostRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		c.logger.WithError(err).Error("Failed to bind request body")
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Error:   "validation failed",
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
+		return
+	}
+
+	c.logger.WithField("post_id", uriReq.ID).Info("Update post requested")
+
+	// TODO: Implement update post logic using use cases
+	// For now, return a mock response with HATEOAS links
+	now := time.Now()
+	slug := c.generateSlug(req.Title)
+	baseURL := c.getBaseURL(ctx)
+
+	hateoasBuilder := hateoas.NewBuilder(baseURL)
+	links := hateoasBuilder.PostLinks(uriReq.ID, slug, req.AuthorID)
+
+	response := dto.PostResponse{
+		ID:              uriReq.ID,
+		Title:           req.Title,
+		Slug:            slug,
+		AuthorID:        req.AuthorID,
+		CoverImageURL:   req.CoverImageURL,
+		MarkdownContent: req.MarkdownContent,
+		CreatedAt:       time.Now().Add(-24 * time.Hour),
+		UpdatedAt:       now,
+		Links:           links,
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
 
 func (c *Controller) DeletePost(ctx *gin.Context) {
