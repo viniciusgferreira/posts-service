@@ -43,8 +43,9 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(corsMiddleware())
 
-	// Initialize controller and setup routes
-	controller := ginadapter.NewController(logger)
+	// TODO: Initialize use cases layer when implemented
+	// For now, pass nil to maintain compilation
+	controller := ginadapter.NewController(logger, nil)
 	controller.SetupRoutes(router)
 
 	// Create HTTP server

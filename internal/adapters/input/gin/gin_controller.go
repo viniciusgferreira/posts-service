@@ -2,22 +2,24 @@ package gin
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/dto"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/hateoas"
+	"github.com/viniciusgferreira/posts-service/internal/core/ports"
 )
 
 type Controller struct {
-	logger *logrus.Logger
+	logger       *logrus.Logger
+	postUseCases ports.PostUseCases
 }
 
-func NewController(logger *logrus.Logger) *Controller {
+func NewController(logger *logrus.Logger, postUseCases ports.PostUseCases) *Controller {
 	return &Controller{
-		logger: logger,
+		logger:       logger,
+		postUseCases: postUseCases,
 	}
 }
 
@@ -104,11 +106,12 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: Implement create post logic using use cases
-	// For now, return a mock response with HATEOAS links
+	// TODO: Use cases layer will be implemented
+
+	// Mock response for now
 	now := time.Now()
 	postID := "123456789"
-	slug := c.generateSlug(req.Title)
+	slug := "mock-slug"
 	baseURL := c.getBaseURL(ctx)
 
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
@@ -198,39 +201,6 @@ func (c *Controller) DeletePost(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-func (c *Controller) generateSlug(title string) string {
-	slug := strings.ToLower(title)
-	slug = strings.ReplaceAll(slug, " ", "-")
-
-	slug = strings.ReplaceAll(slug, "ç", "c")
-	slug = strings.ReplaceAll(slug, "ã", "a")
-	slug = strings.ReplaceAll(slug, "á", "a")
-	slug = strings.ReplaceAll(slug, "à", "a")
-	slug = strings.ReplaceAll(slug, "â", "a")
-	slug = strings.ReplaceAll(slug, "é", "e")
-	slug = strings.ReplaceAll(slug, "ê", "e")
-	slug = strings.ReplaceAll(slug, "í", "i")
-	slug = strings.ReplaceAll(slug, "ó", "o")
-	slug = strings.ReplaceAll(slug, "ô", "o")
-	slug = strings.ReplaceAll(slug, "ú", "u")
-	slug = strings.ReplaceAll(slug, "ü", "u")
-
-	var result strings.Builder
-	for _, char := range slug {
-		if (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '-' {
-			result.WriteRune(char)
-		}
-	}
-
-	slug = result.String()
-	for strings.Contains(slug, "--") {
-		slug = strings.ReplaceAll(slug, "--", "-")
-	}
-
-	slug = strings.Trim(slug, "-")
-	return slug
-}
-
 func (c *Controller) getBaseURL(ctx *gin.Context) string {
 	scheme := "http"
 	if ctx.Request.TLS != nil {
@@ -243,4 +213,18 @@ func (c *Controller) getBaseURL(ctx *gin.Context) string {
 	}
 
 	return scheme + "://" + host + "/api/v1"
+}
+
+// TODO: Implement proper error handling for domain errors
+// This will be used when use cases layer is implemented
+func (c *Controller) handleError(ctx *gin.Context, err error) {
+	c.logger.WithError(err).Error("Use case error")
+
+	// TODO: Map domain errors to appropriate HTTP status codes
+	// For now, return generic error
+	ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		Error:   "internal error",
+		Message: err.Error(),
+		Code:    http.StatusInternalServerError,
+	})
 }
