@@ -6,32 +6,6 @@ import (
 	"time"
 )
 
-type Author struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func NewAuthor(id, name, email string) (*Author, error) {
-	if strings.TrimSpace(name) == "" {
-		return nil, errors.New("author name cannot be empty")
-	}
-	if strings.TrimSpace(email) == "" {
-		return nil, errors.New("author email cannot be empty")
-	}
-
-	now := time.Now()
-	return &Author{
-		ID:        id,
-		Name:      strings.TrimSpace(name),
-		Email:     strings.TrimSpace(email),
-		CreatedAt: now,
-		UpdatedAt: now,
-	}, nil
-}
-
 type Post struct {
 	ID              string    `json:"id"`
 	Title           *Title    `json:"title"`
