@@ -8,18 +8,15 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/dto"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/hateoas"
-	"github.com/viniciusgferreira/posts-service/internal/core/ports"
 )
 
 type Controller struct {
-	logger       *logrus.Logger
-	postUseCases ports.PostUseCases
+	logger *logrus.Logger
 }
 
-func NewController(logger *logrus.Logger, postUseCases ports.PostUseCases) *Controller {
+func NewController(logger *logrus.Logger) *Controller {
 	return &Controller{
-		logger:       logger,
-		postUseCases: postUseCases,
+		logger: logger,
 	}
 }
 
