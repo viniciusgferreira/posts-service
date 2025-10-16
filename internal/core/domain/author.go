@@ -3,15 +3,12 @@ package domain
 import (
 	"errors"
 	"strings"
-	"time"
 )
 
 type Author struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Email     *Email    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email *Email `json:"email"`
 }
 
 func NewAuthor(id, name, email string) (*Author, error) {
@@ -24,12 +21,9 @@ func NewAuthor(id, name, email string) (*Author, error) {
 		return nil, err
 	}
 
-	now := time.Now()
 	return &Author{
-		ID:        id,
-		Name:      strings.TrimSpace(name),
-		Email:     validatedEmail,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:    id,
+		Name:  strings.TrimSpace(name),
+		Email: validatedEmail,
 	}, nil
 }
