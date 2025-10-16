@@ -121,7 +121,7 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 		Slug:            post.Slug.String(),
 		AuthorID:        post.Author.ID,
 		CoverImageURL:   post.CoverImageURL.String(),
-		MarkdownContent: post.MarkdownContent,
+		MarkdownContent: post.MarkdownContent.String(),
 		CreatedAt:       post.CreatedAt,
 		UpdatedAt:       post.UpdatedAt,
 		Links:           links,

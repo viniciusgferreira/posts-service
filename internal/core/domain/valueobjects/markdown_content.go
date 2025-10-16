@@ -1,0 +1,76 @@
+package valueobjects
+
+import (
+	"errors"
+	"strings"
+)
+
+// MarkdownContent represents markdown content value object
+type MarkdownContent struct {
+	value string
+}
+
+// NewMarkdownContent creates a new MarkdownContent value object with validation
+func NewMarkdownContent(content string) (*MarkdownContent, error) {
+	if content == "" {
+		return nil, errors.New("markdown content cannot be empty")
+	}
+
+	content = strings.TrimSpace(content)
+
+	if len(content) < 10 {
+		return nil, errors.New("markdown content must be at least 10 characters")
+	}
+
+	if len(content) > 50000 {
+		return nil, errors.New("markdown content cannot exceed 50000 characters")
+	}
+
+	return &MarkdownContent{value: content}, nil
+}
+
+// String returns the content as a string
+func (m *MarkdownContent) String() string {
+	return m.value
+}
+
+// Length returns the length of the content
+func (m *MarkdownContent) Length() int {
+	return len(m.value)
+}
+
+// Equals checks if two markdown contents are equal
+func (m *MarkdownContent) Equals(other *MarkdownContent) bool {
+	if other == nil {
+		return false
+	}
+	return m.value == other.value
+}
+
+// IsEmpty checks if the content is empty
+func (m *MarkdownContent) IsEmpty() bool {
+	return m.value == ""
+}
+
+// HasMinimumLength checks if content meets minimum length requirement
+func (m *MarkdownContent) HasMinimumLength() bool {
+	return len(m.value) >= 10
+}
+
+// MarshalJSON implements json.Marshaler interface
+func (m *MarkdownContent) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + m.value + `"`), nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler interface
+func (m *MarkdownContent) UnmarshalJSON(data []byte) error {
+	contentStr := strings.Trim(string(data), `"`)
+
+	newContent, err := NewMarkdownContent(contentStr)
+	if err != nil {
+		return err
+	}
+
+	m.value = newContent.value
+	return nil
+}

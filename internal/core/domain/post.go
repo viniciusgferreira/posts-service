@@ -2,21 +2,20 @@ package domain
 
 import (
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/viniciusgferreira/posts-service/internal/core/domain/valueobjects"
 )
 
 type Post struct {
-	ID              string                      `json:"id"`
-	Title           *valueobjects.Title         `json:"title"`
-	Slug            *valueobjects.Slug          `json:"slug"`
-	Author          *Author                     `json:"author"`
-	CoverImageURL   *valueobjects.CoverImageURL `json:"cover_image_url"`
-	MarkdownContent string                      `json:"markdown_content"`
-	CreatedAt       time.Time                   `json:"created_at"`
-	UpdatedAt       time.Time                   `json:"updated_at"`
+	ID              string                        `json:"id"`
+	Title           *valueobjects.Title           `json:"title"`
+	Slug            *valueobjects.Slug            `json:"slug"`
+	Author          *Author                       `json:"author"`
+	CoverImageURL   *valueobjects.CoverImageURL   `json:"cover_image_url"`
+	MarkdownContent *valueobjects.MarkdownContent `json:"markdown_content"`
+	CreatedAt       time.Time                     `json:"created_at"`
+	UpdatedAt       time.Time                     `json:"updated_at"`
 }
 
 func NewPost(id, title, markdownContent string, author *Author, coverImageURL string) (*Post, error) {
@@ -25,8 +24,9 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 		return nil, err
 	}
 
-	if strings.TrimSpace(markdownContent) == "" {
-		return nil, errors.New("post content cannot be empty")
+	validatedContent, err := valueobjects.NewMarkdownContent(markdownContent)
+	if err != nil {
+		return nil, err
 	}
 
 	if author == nil {
@@ -47,7 +47,7 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 		Slug:            slug,
 		Author:          author,
 		CoverImageURL:   validatedCoverURL,
-		MarkdownContent: strings.TrimSpace(markdownContent),
+		MarkdownContent: validatedContent,
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}
