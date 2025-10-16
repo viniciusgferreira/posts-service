@@ -120,7 +120,7 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 		Title:           post.Title.String(),
 		Slug:            post.Slug.String(),
 		AuthorID:        post.Author.ID,
-		CoverImageURL:   post.CoverImageURL,
+		CoverImageURL:   post.CoverImageURL.String(),
 		MarkdownContent: post.MarkdownContent,
 		CreatedAt:       post.CreatedAt,
 		UpdatedAt:       post.UpdatedAt,

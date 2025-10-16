@@ -9,14 +9,14 @@ import (
 )
 
 type Post struct {
-	ID              string              `json:"id"`
-	Title           *valueobjects.Title `json:"title"`
-	Slug            *valueobjects.Slug  `json:"slug"`
-	Author          *Author             `json:"author"`
-	CoverImageURL   string              `json:"cover_image_url"`
-	MarkdownContent string              `json:"markdown_content"`
-	CreatedAt       time.Time           `json:"created_at"`
-	UpdatedAt       time.Time           `json:"updated_at"`
+	ID              string                      `json:"id"`
+	Title           *valueobjects.Title         `json:"title"`
+	Slug            *valueobjects.Slug          `json:"slug"`
+	Author          *Author                     `json:"author"`
+	CoverImageURL   *valueobjects.CoverImageURL `json:"cover_image_url"`
+	MarkdownContent string                      `json:"markdown_content"`
+	CreatedAt       time.Time                   `json:"created_at"`
+	UpdatedAt       time.Time                   `json:"updated_at"`
 }
 
 func NewPost(id, title, markdownContent string, author *Author, coverImageURL string) (*Post, error) {
@@ -35,13 +35,18 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 
 	slug := valueobjects.NewSlugFromTitle(validatedTitle)
 
+	validatedCoverURL, err := valueobjects.NewCoverImageURL(coverImageURL)
+	if err != nil {
+		return nil, err
+	}
+
 	now := time.Now()
 	post := &Post{
 		ID:              id,
 		Title:           validatedTitle,
 		Slug:            slug,
 		Author:          author,
-		CoverImageURL:   strings.TrimSpace(coverImageURL),
+		CoverImageURL:   validatedCoverURL,
 		MarkdownContent: strings.TrimSpace(markdownContent),
 		CreatedAt:       now,
 		UpdatedAt:       now,
