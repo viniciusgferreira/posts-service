@@ -34,7 +34,7 @@ func NewAuthor(id, name, email string) (*Author, error) {
 
 type Post struct {
 	ID              string    `json:"id"`
-	Title           string    `json:"title"`
+	Title           *Title    `json:"title"`
 	Slug            string    `json:"slug"`
 	Author          *Author   `json:"author"`
 	CoverImageURL   string    `json:"cover_image_url"`
@@ -44,8 +44,9 @@ type Post struct {
 }
 
 func NewPost(id, title, markdownContent string, author *Author, coverImageURL string) (*Post, error) {
-	if strings.TrimSpace(title) == "" {
-		return nil, errors.New("post title cannot be empty")
+	validatedTitle, err := NewTitle(title)
+	if err != nil {
+		return nil, err
 	}
 
 	if strings.TrimSpace(markdownContent) == "" {
@@ -59,7 +60,7 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 	now := time.Now()
 	post := &Post{
 		ID:              id,
-		Title:           strings.TrimSpace(title),
+		Title:           validatedTitle,
 		Author:          author,
 		CoverImageURL:   strings.TrimSpace(coverImageURL),
 		MarkdownContent: strings.TrimSpace(markdownContent),
@@ -73,7 +74,7 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 }
 
 func (p *Post) generateSlug() {
-	slug := strings.ToLower(p.Title)
+	slug := strings.ToLower(p.Title.String())
 	slug = strings.ReplaceAll(slug, " ", "-")
 
 	slug = strings.ReplaceAll(slug, "ç", "c")
@@ -108,15 +109,16 @@ func (p *Post) generateSlug() {
 }
 
 func (p *Post) UpdatePost(title, markdownContent, coverImageURL string) error {
-	if strings.TrimSpace(title) == "" {
-		return errors.New("post title cannot be empty")
+	validatedTitle, err := NewTitle(title)
+	if err != nil {
+		return err
 	}
 
 	if strings.TrimSpace(markdownContent) == "" {
 		return errors.New("post content cannot be empty")
 	}
 
-	p.Title = strings.TrimSpace(title)
+	p.Title = validatedTitle
 	p.MarkdownContent = strings.TrimSpace(markdownContent)
 	p.CoverImageURL = strings.TrimSpace(coverImageURL)
 	p.UpdatedAt = time.Now()
@@ -127,7 +129,7 @@ func (p *Post) UpdatePost(title, markdownContent, coverImageURL string) error {
 }
 
 func (p *Post) Validate() error {
-	if strings.TrimSpace(p.Title) == "" {
+	if p.Title == nil || p.Title.IsEmpty() {
 		return errors.New("post title cannot be empty")
 	}
 	if strings.TrimSpace(p.MarkdownContent) == "" {

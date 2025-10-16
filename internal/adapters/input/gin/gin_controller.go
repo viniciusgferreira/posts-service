@@ -106,26 +106,27 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: Use cases layer will be implemented
+	// Use use case to create post
+	post, err := c.postUseCases.CreatePost(req.Title, req.MarkdownContent, req.AuthorID, req.CoverImageURL)
+	if err != nil {
+		c.handleError(ctx, err)
+		return
+	}
 
-	// Mock response for now
-	now := time.Now()
-	postID := "123456789"
-	slug := "mock-slug"
+	// Generate response with HATEOAS links
 	baseURL := c.getBaseURL(ctx)
-
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
-	links := hateoasBuilder.PostLinks(postID, slug, req.AuthorID)
+	links := hateoasBuilder.PostLinks(post.ID, post.Slug, post.Author.ID)
 
 	response := dto.PostResponse{
-		ID:              postID,
-		Title:           req.Title,
-		Slug:            slug,
-		AuthorID:        req.AuthorID,
-		CoverImageURL:   req.CoverImageURL,
-		MarkdownContent: req.MarkdownContent,
-		CreatedAt:       now,
-		UpdatedAt:       now,
+		ID:              post.ID,
+		Title:           post.Title.String(),
+		Slug:            post.Slug,
+		AuthorID:        post.Author.ID,
+		CoverImageURL:   post.CoverImageURL,
+		MarkdownContent: post.MarkdownContent,
+		CreatedAt:       post.CreatedAt,
+		UpdatedAt:       post.UpdatedAt,
 		Links:           links,
 	}
 
