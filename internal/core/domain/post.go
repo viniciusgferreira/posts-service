@@ -49,22 +49,3 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 
 	return post, nil
 }
-
-func (p *Post) UpdatePost(title, markdownContent, coverImageURL string) error {
-	validatedTitle, err := valueobjects.NewTitle(title)
-	if err != nil {
-		return err
-	}
-
-	if strings.TrimSpace(markdownContent) == "" {
-		return errors.New("post content cannot be empty")
-	}
-
-	p.Title = validatedTitle
-	p.Slug = valueobjects.NewSlugFromTitle(validatedTitle)
-	p.MarkdownContent = strings.TrimSpace(markdownContent)
-	p.CoverImageURL = strings.TrimSpace(coverImageURL)
-	p.UpdatedAt = time.Now()
-
-	return nil
-}
