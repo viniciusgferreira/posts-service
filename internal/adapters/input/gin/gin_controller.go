@@ -116,12 +116,12 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 	// Generate response with HATEOAS links
 	baseURL := c.getBaseURL(ctx)
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
-	links := hateoasBuilder.PostLinks(post.ID, post.Slug, post.Author.ID)
+	links := hateoasBuilder.PostLinks(post.ID, post.Slug.String(), post.Author.ID)
 
 	response := dto.PostResponse{
 		ID:              post.ID,
 		Title:           post.Title.String(),
-		Slug:            post.Slug,
+		Slug:            post.Slug.String(),
 		AuthorID:        post.Author.ID,
 		CoverImageURL:   post.CoverImageURL,
 		MarkdownContent: post.MarkdownContent,

@@ -4,21 +4,23 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/valueobjects"
 )
 
 type Post struct {
-	ID              string    `json:"id"`
-	Title           *Title    `json:"title"`
-	Slug            string    `json:"slug"`
-	Author          *Author   `json:"author"`
-	CoverImageURL   string    `json:"cover_image_url"`
-	MarkdownContent string    `json:"markdown_content"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	ID              string              `json:"id"`
+	Title           *valueobjects.Title `json:"title"`
+	Slug            *valueobjects.Slug  `json:"slug"`
+	Author          *Author             `json:"author"`
+	CoverImageURL   string              `json:"cover_image_url"`
+	MarkdownContent string              `json:"markdown_content"`
+	CreatedAt       time.Time           `json:"created_at"`
+	UpdatedAt       time.Time           `json:"updated_at"`
 }
 
 func NewPost(id, title, markdownContent string, author *Author, coverImageURL string) (*Post, error) {
-	validatedTitle, err := NewTitle(title)
+	validatedTitle, err := valueobjects.NewTitle(title)
 	if err != nil {
 		return nil, err
 	}
@@ -31,10 +33,13 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 		return nil, errors.New("post must have an author")
 	}
 
+	slug := valueobjects.NewSlugFromTitle(validatedTitle)
+
 	now := time.Now()
 	post := &Post{
 		ID:              id,
 		Title:           validatedTitle,
+		Slug:            slug,
 		Author:          author,
 		CoverImageURL:   strings.TrimSpace(coverImageURL),
 		MarkdownContent: strings.TrimSpace(markdownContent),
@@ -42,48 +47,11 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 		UpdatedAt:       now,
 	}
 
-	post.generateSlug()
-
 	return post, nil
 }
 
-func (p *Post) generateSlug() {
-	slug := strings.ToLower(p.Title.String())
-	slug = strings.ReplaceAll(slug, " ", "-")
-
-	slug = strings.ReplaceAll(slug, "ç", "c")
-	slug = strings.ReplaceAll(slug, "ã", "a")
-	slug = strings.ReplaceAll(slug, "á", "a")
-	slug = strings.ReplaceAll(slug, "à", "a")
-	slug = strings.ReplaceAll(slug, "â", "a")
-	slug = strings.ReplaceAll(slug, "é", "e")
-	slug = strings.ReplaceAll(slug, "ê", "e")
-	slug = strings.ReplaceAll(slug, "í", "i")
-	slug = strings.ReplaceAll(slug, "ó", "o")
-	slug = strings.ReplaceAll(slug, "ô", "o")
-	slug = strings.ReplaceAll(slug, "ú", "u")
-	slug = strings.ReplaceAll(slug, "ü", "u")
-
-	var result strings.Builder
-	for _, char := range slug {
-		if (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '-' {
-			result.WriteRune(char)
-		}
-	}
-
-	slug = result.String()
-
-	for strings.Contains(slug, "--") {
-		slug = strings.ReplaceAll(slug, "--", "-")
-	}
-
-	slug = strings.Trim(slug, "-")
-
-	p.Slug = slug
-}
-
 func (p *Post) UpdatePost(title, markdownContent, coverImageURL string) error {
-	validatedTitle, err := NewTitle(title)
+	validatedTitle, err := valueobjects.NewTitle(title)
 	if err != nil {
 		return err
 	}
@@ -93,11 +61,10 @@ func (p *Post) UpdatePost(title, markdownContent, coverImageURL string) error {
 	}
 
 	p.Title = validatedTitle
+	p.Slug = valueobjects.NewSlugFromTitle(validatedTitle)
 	p.MarkdownContent = strings.TrimSpace(markdownContent)
 	p.CoverImageURL = strings.TrimSpace(coverImageURL)
 	p.UpdatedAt = time.Now()
-
-	p.generateSlug()
 
 	return nil
 }
@@ -112,7 +79,7 @@ func (p *Post) Validate() error {
 	if p.Author == nil {
 		return errors.New("post must have an author")
 	}
-	if strings.TrimSpace(p.Slug) == "" {
+	if p.Slug == nil || p.Slug.IsEmpty() {
 		return errors.New("post slug cannot be empty")
 	}
 	return nil
