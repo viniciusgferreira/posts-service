@@ -68,19 +68,3 @@ func (p *Post) UpdatePost(title, markdownContent, coverImageURL string) error {
 
 	return nil
 }
-
-func (p *Post) Validate() error {
-	if p.Title == nil || p.Title.IsEmpty() {
-		return errors.New("post title cannot be empty")
-	}
-	if strings.TrimSpace(p.MarkdownContent) == "" {
-		return errors.New("post content cannot be empty")
-	}
-	if p.Author == nil {
-		return errors.New("post must have an author")
-	}
-	if p.Slug == nil || p.Slug.IsEmpty() {
-		return errors.New("post slug cannot be empty")
-	}
-	return nil
-}
