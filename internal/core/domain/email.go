@@ -11,7 +11,6 @@ type Email struct {
 	value string
 }
 
-// NewEmail creates a new Email value object with validation
 func NewEmail(email string) (*Email, error) {
 	if email == "" {
 		return nil, errors.New("email cannot be empty")
@@ -27,17 +26,10 @@ func NewEmail(email string) (*Email, error) {
 	return &Email{value: email}, nil
 }
 
-// String returns the email as a string
 func (e *Email) String() string {
 	return e.value
 }
 
-// Value returns the email value (alias for String)
-func (e *Email) Value() string {
-	return e.value
-}
-
-// Equals checks if two emails are equal
 func (e *Email) Equals(other *Email) bool {
 	if other == nil {
 		return false
