@@ -1,4 +1,4 @@
-package valueobjects
+package vo
 
 import (
 	"strings"

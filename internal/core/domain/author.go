@@ -4,13 +4,13 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/viniciusgferreira/posts-service/internal/core/domain/valueobjects"
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/vo"
 )
 
 type Author struct {
 	ID    string              `json:"id"`
 	Name  string              `json:"name"`
-	Email *valueobjects.Email `json:"email"`
+	Email *vo.Email `json:"email"`
 }
 
 func NewAuthor(id, name, email string) (*Author, error) {
@@ -18,7 +18,7 @@ func NewAuthor(id, name, email string) (*Author, error) {
 		return nil, errors.New("author name cannot be empty")
 	}
 
-	validatedEmail, err := valueobjects.NewEmail(email)
+	validatedEmail, err := vo.NewEmail(email)
 	if err != nil {
 		return nil, err
 	}
