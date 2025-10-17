@@ -2,7 +2,7 @@ package ports
 
 import "github.com/viniciusgferreira/posts-service/internal/core/domain"
 
-type PostRepository interface {
+type PostPort interface {
 	Save(post *domain.Post) error
 	FindByID(id string) (*domain.Post, error)
 	FindAll() ([]*domain.Post, error)
@@ -10,7 +10,7 @@ type PostRepository interface {
 	Delete(id string) error
 }
 
-type AuthorRepository interface {
+type AuthorPort interface {
 	Save(author *domain.Author) error
 	FindByID(id string) (*domain.Author, error)
 	FindAll() ([]*domain.Author, error)
