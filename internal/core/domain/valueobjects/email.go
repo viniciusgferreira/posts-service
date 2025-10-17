@@ -12,11 +12,12 @@ type Email struct {
 }
 
 func NewEmail(email string) (*Email, error) {
+	email = strings.TrimSpace(email)
+
 	if email == "" {
 		return nil, errors.New("email cannot be empty")
 	}
 
-	email = strings.TrimSpace(email)
 	email = strings.ToLower(email)
 
 	if !isValidEmail(email) {

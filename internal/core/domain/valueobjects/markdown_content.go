@@ -12,11 +12,12 @@ type MarkdownContent struct {
 
 // NewMarkdownContent creates a new MarkdownContent value object with validation
 func NewMarkdownContent(content string) (*MarkdownContent, error) {
+	content = strings.TrimSpace(content)
+	
 	if content == "" {
 		return nil, errors.New("markdown content cannot be empty")
 	}
 
-	content = strings.TrimSpace(content)
 
 	if len(content) < 10 {
 		return nil, errors.New("markdown content must be at least 10 characters")

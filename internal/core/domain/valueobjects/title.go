@@ -11,13 +11,9 @@ type Title struct {
 
 // NewTitle creates a new Title value object with validation
 func NewTitle(title string) (*Title, error) {
-	if title == "" {
-		return nil, errors.New("title cannot be empty")
-	}
-
 	title = strings.TrimSpace(title)
 
-	if len(title) < 1 {
+	if title == "" {
 		return nil, errors.New("title cannot be empty")
 	}
 

@@ -13,11 +13,11 @@ type CoverImageURL struct {
 
 // NewCoverImageURL creates a new CoverImageURL value object with validation
 func NewCoverImageURL(imageURL string) (*CoverImageURL, error) {
+	imageURL = strings.TrimSpace(imageURL)
+
 	if imageURL == "" {
 		return &CoverImageURL{value: ""}, nil // Empty is allowed for optional field
 	}
-
-	imageURL = strings.TrimSpace(imageURL)
 
 	if !isValidURL(imageURL) {
 		return nil, errors.New("invalid URL format")
