@@ -2,6 +2,7 @@ package gin
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -157,8 +158,7 @@ func (c *Controller) UpdatePost(ctx *gin.Context) {
 	// TODO: Implement update post logic using use cases
 	// For now, return a mock response with HATEOAS links
 	now := time.Now()
-	// Simple slug generation for placeholder
-	slug := "placeholder-slug"
+	slug := c.generateSlug(req.Title)
 	baseURL := c.getBaseURL(ctx)
 
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
@@ -206,6 +206,46 @@ func (c *Controller) getBaseURL(ctx *gin.Context) string {
 	}
 
 	return scheme + "://" + host + "/api/v1"
+}
+
+// generateSlug creates a URL-friendly slug from a title string
+func (c *Controller) generateSlug(title string) string {
+	slug := strings.ToLower(title)
+	slug = strings.ReplaceAll(slug, " ", "-")
+
+	// Replace Portuguese characters
+	slug = strings.ReplaceAll(slug, "ç", "c")
+	slug = strings.ReplaceAll(slug, "ã", "a")
+	slug = strings.ReplaceAll(slug, "á", "a")
+	slug = strings.ReplaceAll(slug, "à", "a")
+	slug = strings.ReplaceAll(slug, "â", "a")
+	slug = strings.ReplaceAll(slug, "é", "e")
+	slug = strings.ReplaceAll(slug, "ê", "e")
+	slug = strings.ReplaceAll(slug, "í", "i")
+	slug = strings.ReplaceAll(slug, "ó", "o")
+	slug = strings.ReplaceAll(slug, "ô", "o")
+	slug = strings.ReplaceAll(slug, "ú", "u")
+	slug = strings.ReplaceAll(slug, "ü", "u")
+
+	// Keep only alphanumeric characters and hyphens
+	var result strings.Builder
+	for _, char := range slug {
+		if (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '-' {
+			result.WriteRune(char)
+		}
+	}
+
+	slug = result.String()
+
+	// Remove multiple consecutive hyphens
+	for strings.Contains(slug, "--") {
+		slug = strings.ReplaceAll(slug, "--", "-")
+	}
+
+	// Remove leading and trailing hyphens
+	slug = strings.Trim(slug, "-")
+
+	return slug
 }
 
 // handleError handles HTTP errors by logging and returning a standardized error response
