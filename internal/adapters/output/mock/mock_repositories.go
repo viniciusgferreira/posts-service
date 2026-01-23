@@ -21,7 +21,7 @@ func NewMockPostRepository() *MockPostRepository {
 
 func (r *MockPostRepository) Save(post *domain.Post) error {
 	r.posts[post.ID] = post
-	r.slugs[post.Slug] = post
+	r.slugs[post.Slug.String()] = post
 	return nil
 }
 
@@ -51,7 +51,7 @@ func (r *MockPostRepository) FindAll() ([]*domain.Post, error) {
 
 func (r *MockPostRepository) Update(post *domain.Post) error {
 	r.posts[post.ID] = post
-	r.slugs[post.Slug] = post
+	r.slugs[post.Slug.String()] = post
 	return nil
 }
 
@@ -61,7 +61,7 @@ func (r *MockPostRepository) Delete(id string) error {
 		return fmt.Errorf("post with id %s not found", id)
 	}
 	delete(r.posts, id)
-	delete(r.slugs, post.Slug)
+	delete(r.slugs, post.Slug.String())
 	return nil
 }
 
@@ -122,7 +122,7 @@ func (s *MockNotificationService) NotifyPostCreated(post *domain.Post) error {
 	fmt.Printf("🔔 NOTIFICATION: New post created!\n")
 	fmt.Printf("   Title: %s\n", post.Title)
 	fmt.Printf("   Author: %s (%s)\n", post.Author.Name, post.Author.Email.String())
-	fmt.Printf("   Slug: %s\n", post.Slug)
+	fmt.Printf("   Slug: %s\n", post.Slug.String())
 	fmt.Printf("   ID: %s\n", post.ID)
 	fmt.Printf("   Created at: %s\n", post.CreatedAt.Format("2006-01-02 15:04:05"))
 	fmt.Printf("=====================================\n")

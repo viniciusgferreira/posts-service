@@ -45,7 +45,7 @@ func main() {
 
 	// TODO: Initialize use cases layer when implemented
 	// For now, pass nil to maintain compilation
-	controller := ginadapter.NewController(logger, nil)
+	controller := ginadapter.NewController(logger)
 	controller.SetupRoutes(router)
 
 	// Create HTTP server
