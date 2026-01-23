@@ -4,24 +4,48 @@ import (
 	"fmt"
 
 	"github.com/viniciusgferreira/posts-service/internal/core/domain"
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
 )
 
 // MockPostRepository implements PostRepository interface for testing/development
 type MockPostRepository struct {
-	posts map[string]*domain.Post
-	slugs map[string]*domain.Post
+	posts  map[string]*domain.Post
+	slugs  map[string]*domain.Post
+	titles map[string]*domain.Post // Track titles for uniqueness check
 }
 
 func NewMockPostRepository() *MockPostRepository {
 	return &MockPostRepository{
-		posts: make(map[string]*domain.Post),
-		slugs: make(map[string]*domain.Post),
+		posts:  make(map[string]*domain.Post),
+		slugs:  make(map[string]*domain.Post),
+		titles: make(map[string]*domain.Post),
 	}
 }
 
 func (r *MockPostRepository) Save(post *domain.Post) error {
+	// Check for duplicate title (case-insensitive)
+	titleKey := post.Title.String()
+	for existingTitle, existingPost := range r.titles {
+		// Skip if it's the same post being updated
+		if existingPost.ID == post.ID {
+			continue
+		}
+		// Check for exact title match (case-insensitive)
+		if existingTitle == titleKey {
+			return errs.DuplicateError
+		}
+	}
+
+	// Check for duplicate slug
+	slugKey := post.Slug.String()
+	if existingPost, exists := r.slugs[slugKey]; exists && existingPost.ID != post.ID {
+		return errs.DuplicateError
+	}
+
+	// Save the post
 	r.posts[post.ID] = post
-	r.slugs[post.Slug.String()] = post
+	r.slugs[slugKey] = post
+	r.titles[titleKey] = post
 	return nil
 }
 
@@ -50,8 +74,37 @@ func (r *MockPostRepository) FindAll() ([]*domain.Post, error) {
 }
 
 func (r *MockPostRepository) Update(post *domain.Post) error {
+	// Get existing post to clean up old title/slug mappings
+	existingPost, exists := r.posts[post.ID]
+	if exists {
+		// Remove old title and slug mappings
+		delete(r.titles, existingPost.Title.String())
+		delete(r.slugs, existingPost.Slug.String())
+	}
+
+	// Check for duplicate title (case-insensitive)
+	titleKey := post.Title.String()
+	for existingTitle, existingPost := range r.titles {
+		// Skip if it's the same post being updated
+		if existingPost.ID == post.ID {
+			continue
+		}
+		// Check for exact title match
+		if existingTitle == titleKey {
+			return errs.DuplicateError
+		}
+	}
+
+	// Check for duplicate slug
+	slugKey := post.Slug.String()
+	if existingPost, exists := r.slugs[slugKey]; exists && existingPost.ID != post.ID {
+		return errs.DuplicateError
+	}
+
+	// Update the post
 	r.posts[post.ID] = post
-	r.slugs[post.Slug.String()] = post
+	r.slugs[slugKey] = post
+	r.titles[titleKey] = post
 	return nil
 }
 
@@ -62,6 +115,7 @@ func (r *MockPostRepository) Delete(id string) error {
 	}
 	delete(r.posts, id)
 	delete(r.slugs, post.Slug.String())
+	delete(r.titles, post.Title.String())
 	return nil
 }
 
