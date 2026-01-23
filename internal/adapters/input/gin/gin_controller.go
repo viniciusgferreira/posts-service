@@ -94,19 +94,14 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 
 	var req dto.CreatePostRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		c.logger.WithError(err).Error("Failed to bind request body")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: err.Error(),
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, http.StatusBadRequest, "validation failed", err.Error())
 		return
 	}
 
 	// Use use case to create post
 	post, err := c.postUseCases.CreatePost(req.Title, req.MarkdownContent, req.AuthorID, req.CoverImageURL)
 	if err != nil {
-		c.handleError(ctx, err)
+		c.handleError(ctx, http.StatusInternalServerError, "internal error", err.Error())
 		return
 	}
 
@@ -135,12 +130,7 @@ func (c *Controller) GetPost(ctx *gin.Context) {
 
 	var req dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		c.logger.WithError(err).Error("Failed to bind URI parameters")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: err.Error(),
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, http.StatusBadRequest, "validation failed", err.Error())
 		return
 	}
 
@@ -174,23 +164,13 @@ func (c *Controller) UpdatePost(ctx *gin.Context) {
 
 	var uriReq dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&uriReq); err != nil {
-		c.logger.WithError(err).Error("Failed to bind URI parameters")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: "Invalid post ID parameter",
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, http.StatusBadRequest, "validation failed", "Invalid post ID parameter")
 		return
 	}
 
 	var req dto.UpdatePostRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		c.logger.WithError(err).Error("Failed to bind request body")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: err.Error(),
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, http.StatusBadRequest, "validation failed", err.Error())
 		return
 	}
 
@@ -225,12 +205,7 @@ func (c *Controller) DeletePost(ctx *gin.Context) {
 
 	var req dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		c.logger.WithError(err).Error("Failed to bind URI parameters")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: err.Error(),
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, http.StatusBadRequest, "validation failed", err.Error())
 		return
 	}
 
@@ -254,16 +229,17 @@ func (c *Controller) getBaseURL(ctx *gin.Context) string {
 	return scheme + "://" + host + "/api/v1"
 }
 
-// TODO: Implement proper error handling for domain errors
-// This will be used when use cases layer is implemented
-func (c *Controller) handleError(ctx *gin.Context, err error) {
-	c.logger.WithError(err).Error("Use case error")
+// handleError handles HTTP errors by logging and returning a standardized error response
+func (c *Controller) handleError(ctx *gin.Context, statusCode int, errorType string, message string) {
+	c.logger.WithFields(logrus.Fields{
+		"status_code": statusCode,
+		"error_type":  errorType,
+		"message":     message,
+	}).Error("Request error")
 
-	// TODO: Map domain errors to appropriate HTTP status codes
-	// For now, return generic error
-	ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-		Error:   "internal error",
-		Message: err.Error(),
-		Code:    http.StatusInternalServerError,
+	ctx.JSON(statusCode, dto.ErrorResponse{
+		Error:   errorType,
+		Message: message,
+		Code:    statusCode,
 	})
 }
