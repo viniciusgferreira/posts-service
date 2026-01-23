@@ -59,8 +59,8 @@ func main() {
 	// Initialize use cases
 	postUseCases := usecases.NewPostUseCases(postRepository, authorRepository)
 
-	// Initialize controller with use cases
-	controller := ginadapter.NewController(logger, postUseCases)
+	// Initialize controller with use cases and repository
+	controller := ginadapter.NewController(logger, postUseCases, postRepository)
 	controller.SetupRoutes(router)
 
 	// Create HTTP server
