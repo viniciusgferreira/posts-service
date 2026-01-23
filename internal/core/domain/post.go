@@ -1,9 +1,9 @@
 package domain
 
 import (
-	"errors"
 	"time"
 
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
 	"github.com/viniciusgferreira/posts-service/internal/core/domain/vo"
 )
 
@@ -30,7 +30,7 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 	}
 
 	if author == nil {
-		return nil, errors.New("post must have an author")
+		return nil, errs.MissingAuthor
 	}
 
 	slug := vo.NewSlugFromTitle(validatedTitle)

@@ -1,8 +1,9 @@
 package vo
 
 import (
-	"errors"
 	"strings"
+
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
 )
 
 type Title struct {
@@ -14,11 +15,11 @@ func NewTitle(title string) (*Title, error) {
 	title = strings.TrimSpace(title)
 
 	if title == "" {
-		return nil, errors.New("title cannot be empty")
+		return nil, errs.TitleEmpty
 	}
 
 	if len(title) > 200 {
-		return nil, errors.New("title cannot exceed 200 characters")
+		return nil, errs.TitleTooLong
 	}
 
 	return &Title{value: title}, nil

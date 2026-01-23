@@ -1,9 +1,10 @@
 package vo
 
 import (
-	"errors"
 	"regexp"
 	"strings"
+
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
 )
 
 // Email represents an email address value object
@@ -15,13 +16,13 @@ func NewEmail(email string) (*Email, error) {
 	email = strings.TrimSpace(email)
 
 	if email == "" {
-		return nil, errors.New("email cannot be empty")
+		return nil, errs.EmailEmpty
 	}
 
 	email = strings.ToLower(email)
 
 	if !isValidEmail(email) {
-		return nil, errors.New("invalid email format")
+		return nil, errs.EmailInvalid
 	}
 
 	return &Email{value: email}, nil

@@ -1,9 +1,10 @@
 package vo
 
 import (
-	"errors"
 	"net/url"
 	"strings"
+
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
 )
 
 // CoverImageURL represents a cover image URL value object
@@ -20,11 +21,11 @@ func NewCoverImageURL(imageURL string) (*CoverImageURL, error) {
 	}
 
 	if !isValidURL(imageURL) {
-		return nil, errors.New("invalid URL format")
+		return nil, errs.CoverURLInvalid
 	}
 
 	if !isValidImageURL(imageURL) {
-		return nil, errors.New("URL must point to an image")
+		return nil, errs.CoverURLNotImage
 	}
 
 	return &CoverImageURL{value: imageURL}, nil

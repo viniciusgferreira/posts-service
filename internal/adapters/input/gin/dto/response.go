@@ -38,7 +38,8 @@ type PaginationInfo struct {
 
 // ErrorResponse represents an error response
 type ErrorResponse struct {
-	Error   string `json:"error" example:"validation failed"`
-	Message string `json:"message" example:"The title field is required"`
-	Code    int    `json:"code" example:"400"`
+	Error     string    `json:"error" example:"validation failed"`
+	Message   string    `json:"message" example:"The title field is required"`
+	Code      string    `json:"code" example:"PS014"`
+	Timestamp time.Time `json:"timestamp" example:"2025-01-15T10:30:00Z"`
 }

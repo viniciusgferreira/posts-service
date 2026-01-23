@@ -1,8 +1,9 @@
 package vo
 
 import (
-	"errors"
 	"strings"
+
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
 )
 
 // MarkdownContent represents markdown content value object
@@ -13,18 +14,17 @@ type MarkdownContent struct {
 // NewMarkdownContent creates a new MarkdownContent value object with validation
 func NewMarkdownContent(content string) (*MarkdownContent, error) {
 	content = strings.TrimSpace(content)
-	
+
 	if content == "" {
-		return nil, errors.New("markdown content cannot be empty")
+		return nil, errs.ContentEmpty
 	}
 
-
 	if len(content) < 10 {
-		return nil, errors.New("markdown content must be at least 10 characters")
+		return nil, errs.ContentTooShort
 	}
 
 	if len(content) > 50000 {
-		return nil, errors.New("markdown content cannot exceed 50000 characters")
+		return nil, errs.ContentTooLong
 	}
 
 	return &MarkdownContent{value: content}, nil

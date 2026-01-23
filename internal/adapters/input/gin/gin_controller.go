@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/dto"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/hateoas"
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
 )
 
 type Controller struct {
@@ -95,13 +97,13 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 
 	var req dto.CreatePostRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		c.handleError(ctx, http.StatusBadRequest, "validation failed", err.Error())
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
 	// TODO: Implement create post logic using use cases
 	// For now, return a mock response
-	c.handleError(ctx, http.StatusNotImplemented, "not implemented", "Create post functionality not yet implemented")
+	c.handleError(ctx, errors.New("Create post functionality not yet implemented"))
 }
 
 func (c *Controller) GetPost(ctx *gin.Context) {
@@ -109,7 +111,7 @@ func (c *Controller) GetPost(ctx *gin.Context) {
 
 	var req dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		c.handleError(ctx, http.StatusBadRequest, "validation failed", err.Error())
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
@@ -143,13 +145,13 @@ func (c *Controller) UpdatePost(ctx *gin.Context) {
 
 	var uriReq dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&uriReq); err != nil {
-		c.handleError(ctx, http.StatusBadRequest, "validation failed", "Invalid post ID parameter")
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
 	var req dto.UpdatePostRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		c.handleError(ctx, http.StatusBadRequest, "validation failed", err.Error())
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
@@ -184,7 +186,7 @@ func (c *Controller) DeletePost(ctx *gin.Context) {
 
 	var req dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		c.handleError(ctx, http.StatusBadRequest, "validation failed", err.Error())
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
@@ -249,16 +251,49 @@ func (c *Controller) generateSlug(title string) string {
 }
 
 // handleError handles HTTP errors by logging and returning a standardized error response
-func (c *Controller) handleError(ctx *gin.Context, statusCode int, errorType string, message string) {
-	c.logger.WithFields(logrus.Fields{
-		"status_code": statusCode,
-		"error_type":  errorType,
-		"message":     message,
-	}).Error("Request error")
+// It checks if the error is a custom app error and maps it appropriately
+func (c *Controller) handleError(ctx *gin.Context, err error) {
+	var appErr errs.AppErrorInterface
+	if errors.As(err, &appErr) {
+		// Custom app error detected
+		statusCode := c.mapErrorTypeToStatusCode(appErr.GetType())
 
-	ctx.JSON(statusCode, dto.ErrorResponse{
-		Error:   errorType,
-		Message: message,
-		Code:    statusCode,
+		c.logger.WithFields(logrus.Fields{
+			"status_code": statusCode,
+			"error_code":  appErr.GetCode(),
+			"error_type":  appErr.GetType(),
+			"message":     appErr.GetMessage(),
+		}).Error("Request error")
+
+		ctx.JSON(statusCode, dto.ErrorResponse{
+			Error:     string(appErr.GetType()),
+			Message:   appErr.GetMessage(),
+			Code:      appErr.GetCode(),
+			Timestamp: time.Now(),
+		})
+		return
+	}
+
+	// Fallback for non-custom errors
+	c.logger.WithError(err).Error("Request error")
+	ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		Error:     string(errs.InternalType),
+		Message:   err.Error(),
+		Code:      errs.InternalServerError.GetCode(),
+		Timestamp: time.Now(),
 	})
+}
+
+// mapErrorTypeToStatusCode maps error types to HTTP status codes
+func (c *Controller) mapErrorTypeToStatusCode(errorType errs.Type) int {
+	switch errorType {
+	case errs.ValidationType:
+		return http.StatusBadRequest
+	case errs.PermissionType:
+		return http.StatusForbidden
+	case errs.InternalType:
+		return http.StatusInternalServerError
+	default:
+		return http.StatusInternalServerError
+	}
 }
