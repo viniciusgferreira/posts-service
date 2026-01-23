@@ -11,15 +11,18 @@ import (
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/dto"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/hateoas"
 	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
+	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
 type Controller struct {
-	logger *logrus.Logger
+	logger       *logrus.Logger
+	postUseCases *usecases.PostUseCases
 }
 
-func NewController(logger *logrus.Logger) *Controller {
+func NewController(logger *logrus.Logger, postUseCases *usecases.PostUseCases) *Controller {
 	return &Controller{
-		logger: logger,
+		logger:       logger,
+		postUseCases: postUseCases,
 	}
 }
 
@@ -62,10 +65,10 @@ func (c *Controller) GetPosts(ctx *gin.Context) {
 	// Mock data
 	posts := []dto.PostResponse{
 		{
-			ID:              "123456789",
+			ID:              "1",
 			Title:           "O Guia Completo para Arquitetura Hexagonal",
 			Slug:            "o-guia-completo-para-arquitetura-hexagonal",
-			AuthorID:        "987654321",
+			AuthorID:        "1",
 			CoverImageURL:   "https://cdn.seu-blog.com/imagens/post-arquitetura-hexagonal-capa.png",
 			MarkdownContent: "# Guia para Arquitetura Hexagonal...",
 			CreatedAt:       time.Now(),
@@ -101,9 +104,31 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: Implement create post logic using use cases
-	// For now, return a mock response
-	c.handleError(ctx, errors.New("Create post functionality not yet implemented"))
+	// Use use case to create post
+	post, err := c.postUseCases.CreatePost(req.Title, req.MarkdownContent, req.AuthorID, req.CoverImageURL)
+	if err != nil {
+		c.handleError(ctx, err)
+		return
+	}
+
+	// Generate response with HATEOAS links
+	baseURL := c.getBaseURL(ctx)
+	hateoasBuilder := hateoas.NewBuilder(baseURL)
+	links := hateoasBuilder.PostLinks(post.ID, post.Slug.String(), post.Author.ID)
+
+	response := dto.PostResponse{
+		ID:              post.ID,
+		Title:           post.Title.String(),
+		Slug:            post.Slug.String(),
+		AuthorID:        post.Author.ID,
+		CoverImageURL:   post.CoverImageURL.String(),
+		MarkdownContent: post.MarkdownContent.String(),
+		CreatedAt:       post.CreatedAt,
+		UpdatedAt:       post.UpdatedAt,
+		Links:           links,
+	}
+
+	ctx.JSON(http.StatusCreated, response)
 }
 
 func (c *Controller) GetPost(ctx *gin.Context) {

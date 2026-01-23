@@ -11,6 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	ginadapter "github.com/viniciusgferreira/posts-service/internal/adapters/input/gin"
+	"github.com/viniciusgferreira/posts-service/internal/adapters/output/mock"
+	"github.com/viniciusgferreira/posts-service/internal/core/domain"
+	"github.com/viniciusgferreira/posts-service/internal/core/ports"
+	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
 const (
@@ -43,9 +47,20 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(corsMiddleware())
 
-	// TODO: Initialize use cases layer when implemented
-	// For now, pass nil to maintain compilation
-	controller := ginadapter.NewController(logger)
+	// Initialize repositories (using mock repositories for now)
+	postRepository := mock.NewMockPostRepository()
+	authorRepository := mock.NewMockAuthorRepository()
+
+	// Seed mock author data
+	if err := seedMockAuthor(authorRepository); err != nil {
+		logger.WithError(err).Fatal("Failed to seed mock author")
+	}
+
+	// Initialize use cases
+	postUseCases := usecases.NewPostUseCases(postRepository, authorRepository)
+
+	// Initialize controller with use cases
+	controller := ginadapter.NewController(logger, postUseCases)
 	controller.SetupRoutes(router)
 
 	// Create HTTP server
@@ -94,4 +109,14 @@ func corsMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+// seedMockAuthor creates and saves a mock author with ID "1" for testing/development
+func seedMockAuthor(authorRepository ports.AuthorPort) error {
+	author, err := domain.NewAuthor("1", "John Doe", "john.doe@example.com")
+	if err != nil {
+		return err
+	}
+
+	return authorRepository.Save(author)
 }
