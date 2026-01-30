@@ -44,20 +44,3 @@ func isValidEmail(email string) bool {
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
 }
-
-func (e *Email) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + e.value + `"`), nil
-}
-
-func (e *Email) UnmarshalJSON(data []byte) error {
-	// Remove quotes from JSON string
-	emailStr := strings.Trim(string(data), `"`)
-
-	newEmail, err := NewEmail(emailStr)
-	if err != nil {
-		return err
-	}
-
-	e.value = newEmail.value
-	return nil
-}

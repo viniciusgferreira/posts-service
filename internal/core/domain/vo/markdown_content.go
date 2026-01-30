@@ -57,21 +57,3 @@ func (m *MarkdownContent) IsEmpty() bool {
 func (m *MarkdownContent) HasMinimumLength() bool {
 	return len(m.value) >= 10
 }
-
-// MarshalJSON implements json.Marshaler interface
-func (m *MarkdownContent) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + m.value + `"`), nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler interface
-func (m *MarkdownContent) UnmarshalJSON(data []byte) error {
-	contentStr := strings.Trim(string(data), `"`)
-
-	newContent, err := NewMarkdownContent(contentStr)
-	if err != nil {
-		return err
-	}
-
-	m.value = newContent.value
-	return nil
-}

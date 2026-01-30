@@ -38,18 +38,6 @@ func (s *Slug) IsEmpty() bool {
 	return s.value == ""
 }
 
-// MarshalJSON implements json.Marshaler interface
-func (s *Slug) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + s.value + `"`), nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler interface
-func (s *Slug) UnmarshalJSON(data []byte) error {
-	slugStr := strings.Trim(string(data), `"`)
-	s.value = slugStr
-	return nil
-}
-
 // generateSlugFromTitle creates a URL-friendly slug from a title
 func generateSlugFromTitle(title string) string {
 	slug := strings.ToLower(title)

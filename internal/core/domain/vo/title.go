@@ -47,22 +47,3 @@ func (t *Title) Equals(other *Title) bool {
 func (t *Title) IsEmpty() bool {
 	return t.value == ""
 }
-
-// MarshalJSON implements json.Marshaler interface
-func (t *Title) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + t.value + `"`), nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler interface
-func (t *Title) UnmarshalJSON(data []byte) error {
-	// Remove quotes from JSON string
-	titleStr := strings.Trim(string(data), `"`)
-
-	newTitle, err := NewTitle(titleStr)
-	if err != nil {
-		return err
-	}
-
-	t.value = newTitle.value
-	return nil
-}

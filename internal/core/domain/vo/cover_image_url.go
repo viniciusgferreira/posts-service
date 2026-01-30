@@ -49,24 +49,6 @@ func (c *CoverImageURL) Equals(other *CoverImageURL) bool {
 	return c.value == other.value
 }
 
-// MarshalJSON implements json.Marshaler interface
-func (c *CoverImageURL) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + c.value + `"`), nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler interface
-func (c *CoverImageURL) UnmarshalJSON(data []byte) error {
-	urlStr := strings.Trim(string(data), `"`)
-
-	newURL, err := NewCoverImageURL(urlStr)
-	if err != nil {
-		return err
-	}
-
-	c.value = newURL.value
-	return nil
-}
-
 // isValidURL checks if the string is a valid URL
 func isValidURL(urlStr string) bool {
 	_, err := url.Parse(urlStr)
