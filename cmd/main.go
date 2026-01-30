@@ -12,8 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 	ginadapter "github.com/viniciusgferreira/posts-service/internal/adapters/input/gin"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/output/mock"
-	"github.com/viniciusgferreira/posts-service/internal/core/domain"
-	"github.com/viniciusgferreira/posts-service/internal/core/ports"
 	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
@@ -51,11 +49,6 @@ func main() {
 	postRepository := mock.NewMockPostRepository()
 	authorRepository := mock.NewMockAuthorRepository()
 
-	// Seed mock author data
-	if err := seedMockAuthor(authorRepository); err != nil {
-		logger.WithError(err).Fatal("Failed to seed mock author")
-	}
-
 	// Initialize use cases
 	postUseCases := usecases.NewPostUseCases(postRepository, authorRepository)
 
@@ -77,7 +70,6 @@ func main() {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
@@ -109,14 +101,4 @@ func corsMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-// seedMockAuthor creates and saves a mock author with ID "1" for testing/development
-func seedMockAuthor(authorRepository ports.AuthorCreationPort) error {
-	author, err := domain.NewAuthor("1", "John Doe", "john.doe@example.com")
-	if err != nil {
-		return err
-	}
-
-	return authorRepository.Save(author)
 }
