@@ -3,7 +3,6 @@ package gin
 import (
 	"errors"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -12,21 +11,18 @@ import (
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/dto"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/hateoas"
 	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
-	"github.com/viniciusgferreira/posts-service/internal/core/ports"
 	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
 type Controller struct {
-	logger         *logrus.Logger
-	postUseCases   *usecases.PostUseCases
-	postRepository ports.PostPort
+	logger       *logrus.Logger
+	postUseCases *usecases.PostUseCases
 }
 
-func NewController(logger *logrus.Logger, postUseCases *usecases.PostUseCases, postRepository ports.PostPort) *Controller {
+func NewController(logger *logrus.Logger, postUseCases *usecases.PostUseCases) *Controller {
 	return &Controller{
-		logger:         logger,
-		postUseCases:   postUseCases,
-		postRepository: postRepository,
+		logger:       logger,
+		postUseCases: postUseCases,
 	}
 }
 
@@ -55,68 +51,64 @@ func (c *Controller) GetPosts(ctx *gin.Context) {
 	c.logger.Info("Get posts requested")
 
 	// Parse pagination parameters
-	page := 1
-	limit := 10
-	if pageStr := ctx.Query("page"); pageStr != "" {
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
-		}
-	}
-	if limitStr := ctx.Query("limit"); limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
-			limit = l
-		}
-	}
+	//page := 1
+	//limit := 10
+	//if pageStr := ctx.Query("page"); pageStr != "" {
+	//	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+	//		page = p
+	//	}
+	//}
+	//if limitStr := ctx.Query("limit"); limitStr != "" {
+	//	if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
+	//		limit = l
+	//	}
+	//}
 
-	// Get posts from in memory repository
-	domainPosts, err := c.postRepository.FindAll()
-	if err != nil {
-		c.handleError(ctx, err)
-		return
-	}
+	// TODO GET POST USE CASE
+	//domainPosts, err := c.postUseCases.GetPosts(page, limit)
 
 	// Convert domain posts to DTOs
-	baseURL := c.getBaseURL(ctx)
-	hateoasBuilder := hateoas.NewBuilder(baseURL)
-	posts := make([]dto.PostResponse, 0, len(domainPosts))
+	//baseURL := c.getBaseURL(ctx)
+	//hateoasBuilder := hateoas.NewBuilder(baseURL)
+	//posts := make([]dto.PostResponse, 0, len(domainPosts))
+	//
+	//for _, post := range domainPosts {
+	//	posts = append(posts, dto.PostResponse{
+	//		ID:              post.ID,
+	//		Title:           post.Title.String(),
+	//		Slug:            post.Slug.String(),
+	//		AuthorID:        post.Author.ID,
+	//		CoverImageURL:   post.CoverImageURL.String(),
+	//		MarkdownContent: post.MarkdownContent.String(),
+	//		CreatedAt:       post.CreatedAt,
+	//		UpdatedAt:       post.UpdatedAt,
+	//		Links:           hateoasBuilder.PostLinks(post.ID, post.Slug.String(), post.Author.ID),
+	//	})
+	//}
+	//
+	//// Calculate pagination metadata
+	//total := len(posts)
+	//totalPages := (total + limit - 1) / limit
+	//if totalPages == 0 {
+	//	totalPages = 1
+	//}
+	//
+	//collectionLinks := hateoasBuilder.CollectionLinks("posts", page, limit, total)
+	//
+	//response := dto.GetPostsResponse{
+	//	Posts: posts,
+	//	Pagination: dto.PaginationInfo{
+	//		Page:       page,
+	//		Limit:      limit,
+	//		Total:      total,
+	//		TotalPages: totalPages,
+	//		HasNext:    page < totalPages,
+	//		HasPrev:    page > 1,
+	//	},
+	//	Links: collectionLinks,
+	//}
 
-	for _, post := range domainPosts {
-		posts = append(posts, dto.PostResponse{
-			ID:              post.ID,
-			Title:           post.Title.String(),
-			Slug:            post.Slug.String(),
-			AuthorID:        post.Author.ID,
-			CoverImageURL:   post.CoverImageURL.String(),
-			MarkdownContent: post.MarkdownContent.String(),
-			CreatedAt:       post.CreatedAt,
-			UpdatedAt:       post.UpdatedAt,
-			Links:           hateoasBuilder.PostLinks(post.ID, post.Slug.String(), post.Author.ID),
-		})
-	}
-
-	// Calculate pagination metadata
-	total := len(posts)
-	totalPages := (total + limit - 1) / limit
-	if totalPages == 0 {
-		totalPages = 1
-	}
-
-	collectionLinks := hateoasBuilder.CollectionLinks("posts", page, limit, total)
-
-	response := dto.GetPostsResponse{
-		Posts: posts,
-		Pagination: dto.PaginationInfo{
-			Page:       page,
-			Limit:      limit,
-			Total:      total,
-			TotalPages: totalPages,
-			HasNext:    page < totalPages,
-			HasPrev:    page > 1,
-		},
-		Links: collectionLinks,
-	}
-
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, dto.GetPostsResponse{})
 }
 
 func (c *Controller) CreatePost(ctx *gin.Context) {

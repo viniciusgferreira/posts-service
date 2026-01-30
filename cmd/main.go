@@ -60,7 +60,7 @@ func main() {
 	postUseCases := usecases.NewPostUseCases(postRepository, authorRepository)
 
 	// Initialize controller with use cases and repository
-	controller := ginadapter.NewController(logger, postUseCases, postRepository)
+	controller := ginadapter.NewController(logger, postUseCases)
 	controller.SetupRoutes(router)
 
 	// Create HTTP server
@@ -112,7 +112,7 @@ func corsMiddleware() gin.HandlerFunc {
 }
 
 // seedMockAuthor creates and saves a mock author with ID "1" for testing/development
-func seedMockAuthor(authorRepository ports.AuthorPort) error {
+func seedMockAuthor(authorRepository ports.AuthorCreationPort) error {
 	author, err := domain.NewAuthor("1", "John Doe", "john.doe@example.com")
 	if err != nil {
 		return err
