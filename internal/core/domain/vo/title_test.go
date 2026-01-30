@@ -107,8 +107,8 @@ func TestTitle_IsEmpty(t *testing.T) {
 		t.Error("Non-empty title should not be empty")
 	}
 
-	emptyTitle, _ := NewTitle("")
-	if !emptyTitle.IsEmpty() {
-		t.Error("Empty title should be empty")
+	_, err := NewTitle("")
+	if err == nil {
+		t.Error("Empty title should return an error")
 	}
 }
