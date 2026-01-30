@@ -39,11 +39,8 @@ func (uc *PostUseCases) CreatePost(title, markdownContent, authorID, coverImageU
 		return nil, errs.AuthorNotFound
 	}
 
-	// Generate unique ID for the post
-	postID := generateID()
-
 	// Create post domain entity (this will validate all fields)
-	post, err := domain.NewPost(postID, title, markdownContent, author, coverImageURL)
+	post, err := domain.NewPost(title, markdownContent, author, coverImageURL)
 	if err != nil {
 		return nil, err
 	}

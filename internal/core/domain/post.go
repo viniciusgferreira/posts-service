@@ -18,7 +18,7 @@ type Post struct {
 	UpdatedAt       time.Time           `json:"updated_at"`
 }
 
-func NewPost(id, title, markdownContent string, author *Author, coverImageURL string) (*Post, error) {
+func NewPost(title, markdownContent string, author *Author, coverImageURL string) (*Post, error) {
 	validatedTitle, err := vo.NewTitle(title)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,6 @@ func NewPost(id, title, markdownContent string, author *Author, coverImageURL st
 
 	now := time.Now()
 	post := &Post{
-		ID:              id,
 		Title:           validatedTitle,
 		Slug:            slug,
 		Author:          author,
