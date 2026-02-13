@@ -10,22 +10,22 @@ import (
 
 // PostUseCases handles all post-related business logic
 type PostUseCases struct {
-	postRepository   ports.PostCreationPort
-	authorRepository ports.AuthorCreationPort
+	postCreationPort ports.PostCreationPort
+	authorReadingPort ports.AuthorReadingPort
 }
 
 // NewPostUseCases creates a new instance of PostUseCases
-func NewPostUseCases(postRepository ports.PostCreationPort, authorRepository ports.AuthorCreationPort) *PostUseCases {
+func NewPostUseCases(postRepository ports.PostCreationPort, authorRepository ports.AuthorReadingPort) *PostUseCases {
 	return &PostUseCases{
-		postRepository:   postRepository,
-		authorRepository: authorRepository,
+		postCreationPort: postRepository,
+		authorReadingPort: authorRepository,
 	}
 }
 
 // CreatePost creates a new post
 func (uc *PostUseCases) CreatePost(title, markdownContent, authorID, coverImageURL string) (*domain.Post, error) {
 	// Get author by ID
-	author, err := uc.authorRepository.FindByID(authorID)
+	author, err := uc.authorReadingPort.FindByID(authorID)
 	if err != nil {
 		return nil, errs.AuthorNotFound
 	}
@@ -37,7 +37,7 @@ func (uc *PostUseCases) CreatePost(title, markdownContent, authorID, coverImageU
 	}
 
 	// Save post to repository
-	if err := uc.postRepository.Save(post); err != nil {
+	if err := uc.postCreationPort.Save(post); err != nil {
 		return nil, fmt.Errorf("failed to save post: %w", err)
 	}
 
