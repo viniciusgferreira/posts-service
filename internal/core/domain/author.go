@@ -8,9 +8,9 @@ import (
 )
 
 type Author struct {
-	ID    string              `json:"id"`
-	Name  string              `json:"name"`
-	Email *vo.Email `json:"email"`
+	ID    string
+	Name  string
+	Email *vo.Email
 }
 
 func NewAuthor(id, name, email string) (*Author, error) {
