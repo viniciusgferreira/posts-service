@@ -8,14 +8,14 @@ import (
 )
 
 type Post struct {
-	ID              string              `json:"id"`
-	Title           *vo.Title           `json:"title"`
-	Slug            *vo.Slug            `json:"slug"`
-	Author          *Author             `json:"author"`
-	CoverImageURL   *vo.CoverImageURL   `json:"cover_image_url"`
-	MarkdownContent *vo.MarkdownContent `json:"markdown_content"`
-	CreatedAt       time.Time           `json:"created_at"`
-	UpdatedAt       time.Time           `json:"updated_at"`
+	ID              string
+	Title           *vo.Title
+	Slug            *vo.Slug
+	Author          *Author
+	CoverImageURL   *vo.CoverImageURL
+	MarkdownContent *vo.MarkdownContent
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 func NewPost(title, markdownContent string, author *Author, coverImageURL string) (*Post, error) {
