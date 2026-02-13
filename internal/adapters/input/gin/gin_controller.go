@@ -296,8 +296,8 @@ func (c *Controller) generateSlug(title string) string {
 func (c *Controller) handleError(ctx *gin.Context, err error) {
 	var appErr errs.AppErrorInterface
 	if errors.As(err, &appErr) {
-		// Custom app error detected
-		statusCode := c.mapErrorTypeToStatusCode(appErr.GetType())
+		// Custom app error detected - use the HTTP status code directly from the error
+		statusCode := appErr.GetCode()
 
 		c.logger.WithFields(logrus.Fields{
 			"status_code": statusCode,
@@ -323,18 +323,4 @@ func (c *Controller) handleError(ctx *gin.Context, err error) {
 		Code:      errs.InternalServerError.GetCode(),
 		Timestamp: time.Now(),
 	})
-}
-
-// mapErrorTypeToStatusCode maps error types to HTTP status codes
-func (c *Controller) mapErrorTypeToStatusCode(errorType errs.Type) int {
-	switch errorType {
-	case errs.ValidationType:
-		return http.StatusBadRequest
-	case errs.PermissionType:
-		return http.StatusForbidden
-	case errs.InternalType:
-		return http.StatusInternalServerError
-	default:
-		return http.StatusInternalServerError
-	}
 }

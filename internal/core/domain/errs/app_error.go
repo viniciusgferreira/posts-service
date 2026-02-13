@@ -13,25 +13,25 @@ const (
 type AppErrorInterface interface {
 	error
 	Is(error) bool
-	GetCode() string
+	GetCode() int
 	GetMessage() string
 	GetType() Type
 }
 
 type appError struct {
 	Message string `json:"message,omitempty"`
-	Code    string `json:"code,omitempty"`
+	Code    int    `json:"code,omitempty"`
 	Type    Type   `json:"-"`
 }
 
-var errorCodes = map[string]bool{}
+var errorCodes = map[int]bool{}
 
-// New creates a new appError instance with the provided code, message, and error type.
+// New creates a new appError instance with the provided HTTP status code, message, and error type.
 // Instantiate new sentinels errors from New function as it guarantees code uniqueness.
 // Make sure code is unique throughout the application, otherwise it will panic.
 //
 // Note: The error Type defaults to InternalType if it's not one of the enums options.
-func New(code, message string, errorType Type) AppErrorInterface {
+func New(code int, message string, errorType Type) AppErrorInterface {
 	if errorCodes[code] {
 		panic(fmt.Sprintf("App error with code %v already exists", code))
 	}
@@ -67,7 +67,7 @@ func (e appError) Is(target error) bool {
 	return false
 }
 
-func (e appError) GetCode() string {
+func (e appError) GetCode() int {
 	return e.Code
 }
 
