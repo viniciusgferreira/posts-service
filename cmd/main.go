@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	ginadapter "github.com/viniciusgferreira/posts-service/internal/adapters/input/gin"
-	"github.com/viniciusgferreira/posts-service/internal/adapters/output/mock"
+	"github.com/viniciusgferreira/posts-service/internal/core/ports"
 	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
@@ -45,9 +45,9 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(corsMiddleware())
 
-	// Initialize repositories (using mock repositories for now)
-	postRepository := mock.NewMockPostRepository()
-	authorRepository := mock.NewMockAuthorRepository()
+	// TODO REPOSITORY IMPLEMENTATION
+	var authorRepository ports.AuthorReadingPort
+	var postRepository ports.PostCreationPort
 
 	// Initialize use cases
 	postUseCases := usecases.NewPostUseCases(postRepository, authorRepository)

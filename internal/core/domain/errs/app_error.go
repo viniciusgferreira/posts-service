@@ -24,31 +24,20 @@ type appError struct {
 	Type    Type   `json:"-"`
 }
 
-var errorCodes = map[int]bool{}
-
 // New creates a new appError instance with the provided HTTP status code, message, and error type.
-// Instantiate new sentinels errors from New function as it guarantees code uniqueness.
-// Make sure code is unique throughout the application, otherwise it will panic.
+// Multiple errors can share the same HTTP status code as this is expected behavior.
 //
 // Note: The error Type defaults to InternalType if it's not one of the enums options.
 func New(code int, message string, errorType Type) AppErrorInterface {
-	if errorCodes[code] {
-		panic(fmt.Sprintf("App error with code %v already exists", code))
-	}
-
 	if errorType != ValidationType && errorType != InternalType && errorType != PermissionType {
 		errorType = InternalType
 	}
 
-	err := appError{
+	return appError{
 		Message: message,
 		Code:    code,
 		Type:    errorType,
 	}
-
-	errorCodes[code] = true
-
-	return err
 }
 
 func (e appError) Error() string {
@@ -61,7 +50,8 @@ func (e appError) Is(target error) bool {
 	}
 
 	if targetErr, ok := target.(appError); ok {
-		return e.Code == targetErr.Code
+		// Compare by both code and message to ensure proper error identification
+		return e.Code == targetErr.Code && e.Message == targetErr.Message
 	}
 
 	return false
