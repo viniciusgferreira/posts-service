@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/hateoas"
+	"github.com/viniciusgferreira/posts-service/internal/core/domain"
 )
 
 // CreatePostResponse represents the response payload for creating a new post
@@ -17,6 +18,21 @@ type PostResponse struct {
 	CreatedAt       time.Time     `json:"created_at" example:"2025-09-03T10:00:00Z"`
 	UpdatedAt       time.Time     `json:"updated_at" example:"2025-09-03T10:00:00Z"`
 	Links           hateoas.Links `json:"_links"`
+}
+
+// ToPostResponse converts a domain Post to PostResponse DTO
+func ToPostResponse(post *domain.Post, links hateoas.Links) PostResponse {
+	return PostResponse{
+		ID:              post.ID,
+		Title:           post.Title.String(),
+		Slug:            post.Slug.String(),
+		AuthorID:        post.Author.ID,
+		CoverImageURL:   post.CoverImageURL.String(),
+		MarkdownContent: post.MarkdownContent.String(),
+		CreatedAt:       post.CreatedAt,
+		UpdatedAt:       post.UpdatedAt,
+		Links:           links,
+	}
 }
 
 // GetPostsResponse represents the response for getting multiple posts

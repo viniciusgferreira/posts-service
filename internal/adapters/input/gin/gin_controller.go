@@ -120,8 +120,20 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 		return
 	}
 
+	author, err := c.postUseCases.GetAuthor(req.AuthorID)
+	if err != nil {
+		c.handleError(ctx, err)
+		return
+	}
+
+	post, err := req.ToDomain(author)
+	if err != nil {
+		c.handleError(ctx, err)
+		return
+	}
+
 	// Use use case to create post
-	post, err := c.postUseCases.CreatePost(req.Title, req.MarkdownContent, req.AuthorID, req.CoverImageURL)
+	post, err = c.postUseCases.CreatePost(post)
 	if err != nil {
 		c.handleError(ctx, err)
 		return
@@ -132,17 +144,7 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 	hateoasBuilder := hateoas.NewBuilder(baseURL)
 	links := hateoasBuilder.PostLinks(post.ID, post.Slug.String(), post.Author.ID)
 
-	response := dto.PostResponse{
-		ID:              post.ID,
-		Title:           post.Title.String(),
-		Slug:            post.Slug.String(),
-		AuthorID:        post.Author.ID,
-		CoverImageURL:   post.CoverImageURL.String(),
-		MarkdownContent: post.MarkdownContent.String(),
-		CreatedAt:       post.CreatedAt,
-		UpdatedAt:       post.UpdatedAt,
-		Links:           links,
-	}
+	response := dto.ToPostResponse(post, links)
 
 	ctx.JSON(http.StatusCreated, response)
 }
