@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -9,15 +10,19 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/dto"
 	"github.com/viniciusgferreira/posts-service/internal/adapters/input/gin/hateoas"
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
+	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
 type Controller struct {
-	logger *logrus.Logger
+	logger       *logrus.Logger
+	postUseCases *usecases.PostUseCases
 }
 
-func NewController(logger *logrus.Logger) *Controller {
+func NewController(logger *logrus.Logger, postUseCases *usecases.PostUseCases) *Controller {
 	return &Controller{
-		logger: logger,
+		logger:       logger,
+		postUseCases: postUseCases,
 	}
 }
 
@@ -45,49 +50,65 @@ func (c *Controller) HealthCheck(ctx *gin.Context) {
 func (c *Controller) GetPosts(ctx *gin.Context) {
 	c.logger.Info("Get posts requested")
 
-	page := 1
-	limit := 10
-	// TODO: Use these query parameters in the actual implementation
-	_ = ctx.Query("author_id")
-	_ = ctx.Query("status")
-	_ = ctx.Query("search")
+	// Parse pagination parameters
+	//page := 1
+	//limit := 10
+	//if pageStr := ctx.Query("page"); pageStr != "" {
+	//	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+	//		page = p
+	//	}
+	//}
+	//if limitStr := ctx.Query("limit"); limitStr != "" {
+	//	if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
+	//		limit = l
+	//	}
+	//}
 
-	// TODO: Implement get posts logic using use cases
-	// For now, return a mock response with HATEOAS links
-	baseURL := c.getBaseURL(ctx)
-	hateoasBuilder := hateoas.NewBuilder(baseURL)
+	// TODO GET POST USE CASE
+	//domainPosts, err := c.postUseCases.GetPosts(page, limit)
 
-	// Mock data
-	posts := []dto.PostResponse{
-		{
-			ID:              "123456789",
-			Title:           "O Guia Completo para Arquitetura Hexagonal",
-			Slug:            "o-guia-completo-para-arquitetura-hexagonal",
-			AuthorID:        "987654321",
-			CoverImageURL:   "https://cdn.seu-blog.com/imagens/post-arquitetura-hexagonal-capa.png",
-			MarkdownContent: "# Guia para Arquitetura Hexagonal...",
-			CreatedAt:       time.Now(),
-			UpdatedAt:       time.Now(),
-			Links:           hateoasBuilder.PostLinks("123456789", "o-guia-completo-para-arquitetura-hexagonal", "987654321"),
-		},
-	}
+	// Convert domain posts to DTOs
+	//baseURL := c.getBaseURL(ctx)
+	//hateoasBuilder := hateoas.NewBuilder(baseURL)
+	//posts := make([]dto.PostResponse, 0, len(domainPosts))
+	//
+	//for _, post := range domainPosts {
+	//	posts = append(posts, dto.PostResponse{
+	//		ID:              post.ID,
+	//		Title:           post.Title.String(),
+	//		Slug:            post.Slug.String(),
+	//		AuthorID:        post.Author.ID,
+	//		CoverImageURL:   post.CoverImageURL.String(),
+	//		MarkdownContent: post.MarkdownContent.String(),
+	//		CreatedAt:       post.CreatedAt,
+	//		UpdatedAt:       post.UpdatedAt,
+	//		Links:           hateoasBuilder.PostLinks(post.ID, post.Slug.String(), post.Author.ID),
+	//	})
+	//}
+	//
+	//// Calculate pagination metadata
+	//total := len(posts)
+	//totalPages := (total + limit - 1) / limit
+	//if totalPages == 0 {
+	//	totalPages = 1
+	//}
+	//
+	//collectionLinks := hateoasBuilder.CollectionLinks("posts", page, limit, total)
+	//
+	//response := dto.GetPostsResponse{
+	//	Posts: posts,
+	//	Pagination: dto.PaginationInfo{
+	//		Page:       page,
+	//		Limit:      limit,
+	//		Total:      total,
+	//		TotalPages: totalPages,
+	//		HasNext:    page < totalPages,
+	//		HasPrev:    page > 1,
+	//	},
+	//	Links: collectionLinks,
+	//}
 
-	collectionLinks := hateoasBuilder.CollectionLinks("posts", page, limit, 1)
-
-	response := dto.GetPostsResponse{
-		Posts: posts,
-		Pagination: dto.PaginationInfo{
-			Page:       page,
-			Limit:      limit,
-			Total:      1,
-			TotalPages: 1,
-			HasNext:    false,
-			HasPrev:    false,
-		},
-		Links: collectionLinks,
-	}
-
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, dto.GetPostsResponse{})
 }
 
 func (c *Controller) CreatePost(ctx *gin.Context) {
@@ -95,36 +116,35 @@ func (c *Controller) CreatePost(ctx *gin.Context) {
 
 	var req dto.CreatePostRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		c.logger.WithError(err).Error("Failed to bind request body")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: err.Error(),
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
-	// TODO: Implement create post logic using use cases
-	// For now, return a mock response with HATEOAS links
-	now := time.Now()
-	postID := "123456789"
-	slug := c.generateSlug(req.Title)
-	baseURL := c.getBaseURL(ctx)
-
-	hateoasBuilder := hateoas.NewBuilder(baseURL)
-	links := hateoasBuilder.PostLinks(postID, slug, req.AuthorID)
-
-	response := dto.PostResponse{
-		ID:              postID,
-		Title:           req.Title,
-		Slug:            slug,
-		AuthorID:        req.AuthorID,
-		CoverImageURL:   req.CoverImageURL,
-		MarkdownContent: req.MarkdownContent,
-		CreatedAt:       now,
-		UpdatedAt:       now,
-		Links:           links,
+	author, err := c.postUseCases.GetAuthor(req.AuthorID)
+	if err != nil {
+		c.handleError(ctx, err)
+		return
 	}
+
+	post, err := req.ToDomain(author)
+	if err != nil {
+		c.handleError(ctx, err)
+		return
+	}
+
+	// Use use case to create post
+	post, err = c.postUseCases.CreatePost(post)
+	if err != nil {
+		c.handleError(ctx, err)
+		return
+	}
+
+	// Generate response with HATEOAS links
+	baseURL := c.getBaseURL(ctx)
+	hateoasBuilder := hateoas.NewBuilder(baseURL)
+	links := hateoasBuilder.PostLinks(post.ID, post.Slug.String(), post.Author.ID)
+
+	response := dto.ToPostResponse(post, links)
 
 	ctx.JSON(http.StatusCreated, response)
 }
@@ -134,12 +154,7 @@ func (c *Controller) GetPost(ctx *gin.Context) {
 
 	var req dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		c.logger.WithError(err).Error("Failed to bind URI parameters")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: err.Error(),
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
@@ -173,23 +188,13 @@ func (c *Controller) UpdatePost(ctx *gin.Context) {
 
 	var uriReq dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&uriReq); err != nil {
-		c.logger.WithError(err).Error("Failed to bind URI parameters")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: "Invalid post ID parameter",
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
 	var req dto.UpdatePostRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		c.logger.WithError(err).Error("Failed to bind request body")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: err.Error(),
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
@@ -224,12 +229,7 @@ func (c *Controller) DeletePost(ctx *gin.Context) {
 
 	var req dto.GetPostRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		c.logger.WithError(err).Error("Failed to bind URI parameters")
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Error:   "validation failed",
-			Message: err.Error(),
-			Code:    http.StatusBadRequest,
-		})
+		c.handleError(ctx, errs.RequestBinding)
 		return
 	}
 
@@ -237,39 +237,6 @@ func (c *Controller) DeletePost(ctx *gin.Context) {
 
 	// TODO: Implement delete post logic using use cases
 	ctx.Status(http.StatusNoContent)
-}
-
-func (c *Controller) generateSlug(title string) string {
-	slug := strings.ToLower(title)
-	slug = strings.ReplaceAll(slug, " ", "-")
-
-	slug = strings.ReplaceAll(slug, "ç", "c")
-	slug = strings.ReplaceAll(slug, "ã", "a")
-	slug = strings.ReplaceAll(slug, "á", "a")
-	slug = strings.ReplaceAll(slug, "à", "a")
-	slug = strings.ReplaceAll(slug, "â", "a")
-	slug = strings.ReplaceAll(slug, "é", "e")
-	slug = strings.ReplaceAll(slug, "ê", "e")
-	slug = strings.ReplaceAll(slug, "í", "i")
-	slug = strings.ReplaceAll(slug, "ó", "o")
-	slug = strings.ReplaceAll(slug, "ô", "o")
-	slug = strings.ReplaceAll(slug, "ú", "u")
-	slug = strings.ReplaceAll(slug, "ü", "u")
-
-	var result strings.Builder
-	for _, char := range slug {
-		if (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '-' {
-			result.WriteRune(char)
-		}
-	}
-
-	slug = result.String()
-	for strings.Contains(slug, "--") {
-		slug = strings.ReplaceAll(slug, "--", "-")
-	}
-
-	slug = strings.Trim(slug, "-")
-	return slug
 }
 
 func (c *Controller) getBaseURL(ctx *gin.Context) string {
@@ -284,4 +251,78 @@ func (c *Controller) getBaseURL(ctx *gin.Context) string {
 	}
 
 	return scheme + "://" + host + "/api/v1"
+}
+
+// generateSlug creates a URL-friendly slug from a title string
+func (c *Controller) generateSlug(title string) string {
+	slug := strings.ToLower(title)
+	slug = strings.ReplaceAll(slug, " ", "-")
+
+	// Replace Portuguese characters
+	slug = strings.ReplaceAll(slug, "ç", "c")
+	slug = strings.ReplaceAll(slug, "ã", "a")
+	slug = strings.ReplaceAll(slug, "á", "a")
+	slug = strings.ReplaceAll(slug, "à", "a")
+	slug = strings.ReplaceAll(slug, "â", "a")
+	slug = strings.ReplaceAll(slug, "é", "e")
+	slug = strings.ReplaceAll(slug, "ê", "e")
+	slug = strings.ReplaceAll(slug, "í", "i")
+	slug = strings.ReplaceAll(slug, "ó", "o")
+	slug = strings.ReplaceAll(slug, "ô", "o")
+	slug = strings.ReplaceAll(slug, "ú", "u")
+	slug = strings.ReplaceAll(slug, "ü", "u")
+
+	// Keep only alphanumeric characters and hyphens
+	var result strings.Builder
+	for _, char := range slug {
+		if (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '-' {
+			result.WriteRune(char)
+		}
+	}
+
+	slug = result.String()
+
+	// Remove multiple consecutive hyphens
+	for strings.Contains(slug, "--") {
+		slug = strings.ReplaceAll(slug, "--", "-")
+	}
+
+	// Remove leading and trailing hyphens
+	slug = strings.Trim(slug, "-")
+
+	return slug
+}
+
+// handleError handles HTTP errors by logging and returning a standardized error response
+// It checks if the error is a custom app error and maps it appropriately
+func (c *Controller) handleError(ctx *gin.Context, err error) {
+	var appErr errs.AppErrorInterface
+	if errors.As(err, &appErr) {
+		// Custom app error detected - use the HTTP status code directly from the error
+		statusCode := appErr.GetCode()
+
+		c.logger.WithFields(logrus.Fields{
+			"status_code": statusCode,
+			"error_code":  appErr.GetCode(),
+			"error_type":  appErr.GetType(),
+			"message":     appErr.GetMessage(),
+		}).Error("Request error")
+
+		ctx.JSON(statusCode, dto.ErrorResponse{
+			Error:     string(appErr.GetType()),
+			Message:   appErr.GetMessage(),
+			Code:      appErr.GetCode(),
+			Timestamp: time.Now(),
+		})
+		return
+	}
+
+	// Fallback for non-custom errors
+	c.logger.WithError(err).Error("Request error")
+	ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		Error:     string(errs.InternalType),
+		Message:   err.Error(),
+		Code:      errs.InternalServerError.GetCode(),
+		Timestamp: time.Now(),
+	})
 }

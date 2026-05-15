@@ -1,0 +1,49 @@
+package vo
+
+import (
+	"strings"
+
+	"github.com/viniciusgferreira/posts-service/internal/core/domain/errs"
+)
+
+type Title struct {
+	value string
+}
+
+// NewTitle creates a new Title value object with validation
+func NewTitle(title string) (*Title, error) {
+	title = strings.TrimSpace(title)
+
+	if title == "" {
+		return nil, errs.TitleEmpty
+	}
+
+	if len(title) > 200 {
+		return nil, errs.TitleTooLong
+	}
+
+	return &Title{value: title}, nil
+}
+
+// String returns the title as a string
+func (t *Title) String() string {
+	return t.value
+}
+
+// Length returns the length of the title
+func (t *Title) Length() int {
+	return len(t.value)
+}
+
+// Equals checks if two titles are equal
+func (t *Title) Equals(other *Title) bool {
+	if other == nil {
+		return false
+	}
+	return t.value == other.value
+}
+
+// IsEmpty checks if the title is empty
+func (t *Title) IsEmpty() bool {
+	return t.value == ""
+}

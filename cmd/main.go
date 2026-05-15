@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	ginadapter "github.com/viniciusgferreira/posts-service/internal/adapters/input/gin"
+	"github.com/viniciusgferreira/posts-service/internal/core/ports"
+	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
 const (
@@ -43,8 +45,15 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(corsMiddleware())
 
-	// Initialize controller and setup routes
-	controller := ginadapter.NewController(logger)
+	// TODO REPOSITORY IMPLEMENTATION
+	var authorRepository ports.AuthorReadingPort
+	var postRepository ports.PostCreationPort
+
+	// Initialize use cases
+	postUseCases := usecases.NewPostUseCases(postRepository, authorRepository)
+
+	// Initialize controller with use cases and repository
+	controller := ginadapter.NewController(logger, postUseCases)
 	controller.SetupRoutes(router)
 
 	// Create HTTP server
@@ -61,7 +70,6 @@ func main() {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
