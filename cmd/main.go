@@ -11,14 +11,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	ginadapter "github.com/viniciusgferreira/posts-service/internal/adapters/input/gin"
-	"github.com/viniciusgferreira/posts-service/internal/core/ports"
+	mongoadapter "github.com/viniciusgferreira/posts-service/internal/adapters/output/mongo"
+	"github.com/viniciusgferreira/posts-service/internal/config"
 	"github.com/viniciusgferreira/posts-service/internal/core/usecases"
 )
 
-const (
-	defaultPort     = "8080"
-	shutdownTimeout = 30 * time.Second
-)
+const shutdownTimeout = 30 * time.Second
 
 func main() {
 	// Initialize logger
@@ -26,16 +24,29 @@ func main() {
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetLevel(logrus.InfoLevel)
 
-	// Get port from environment variable or use default
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
+	// Load configuration
+	cfg := config.Load()
 
-	// Set Gin mode based on environment
-	if os.Getenv("GIN_MODE") == "" {
+	// Set Gin mode
+	if cfg.GinMode != "" {
+		gin.SetMode(cfg.GinMode)
+	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// Connect to MongoDB
+	mongoClient, db, err := mongoadapter.NewConnection(cfg.MongoDB.URI, cfg.MongoDB.Database, logger)
+	if err != nil {
+		logger.WithError(err).Fatal("Failed to connect to MongoDB")
+	}
+	defer mongoadapter.Disconnect(mongoClient, logger)
+
+	// Initialize repositories (output adapters)
+	postRepository := mongoadapter.NewPostRepository(db)
+	authorRepository := mongoadapter.NewAuthorRepository(db)
+
+	// Initialize use cases
+	postUseCases := usecases.NewPostUseCases(postRepository, authorRepository)
 
 	// Create Gin router
 	router := gin.New()
@@ -45,26 +56,19 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(corsMiddleware())
 
-	// TODO REPOSITORY IMPLEMENTATION
-	var authorRepository ports.AuthorReadingPort
-	var postRepository ports.PostCreationPort
-
-	// Initialize use cases
-	postUseCases := usecases.NewPostUseCases(postRepository, authorRepository)
-
-	// Initialize controller with use cases and repository
+	// Initialize controller with use cases
 	controller := ginadapter.NewController(logger, postUseCases)
 	controller.SetupRoutes(router)
 
 	// Create HTTP server
 	srv := &http.Server{
-		Addr:    ":" + port,
+		Addr:    ":" + cfg.Port,
 		Handler: router,
 	}
 
 	// Start server in a goroutine
 	go func() {
-		logger.WithField("port", port).Info("Starting server")
+		logger.WithField("port", cfg.Port).Info("Starting server")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.WithError(err).Fatal("Failed to start server")
 		}
