@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/viniciusgferreira/posts-service/internal/core/domain"
@@ -35,7 +36,11 @@ func (uc *PostUseCases) CreatePost(post *domain.Post) (*domain.Post, error) {
 func (uc *PostUseCases) GetAuthor(authorID string) (*domain.Author, error) {
 	author, err := uc.authorReadingPort.FindByID(authorID)
 	if err != nil {
-		return nil, errs.AuthorNotFound
+		var appErr errs.AppErrorInterface
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
+		return nil, fmt.Errorf("failed to get author: %w", err)
 	}
 	return author, nil
 }
